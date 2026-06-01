@@ -454,7 +454,7 @@
         const container = document.getElementById('addresses-list');
         
         try {
-            const res = await fetch(`http://localhost:3000/api/addresses/${encodeURIComponent(currentUser.email)}`);
+            const res = await fetch(`/api/addresses/${encodeURIComponent(currentUser.email)}`);
             if (res.ok) {
                 addresses = await res.json();
         if (!res.ok) { console.error(addresses); return; }
@@ -672,7 +672,7 @@
         btn.disabled = true;
 
         const method = editingAddressId ? 'PUT' : 'POST';
-        const url = editingAddressId ? `/api/addresses/${editingAddressId}` : 'http://localhost:3000/api/addresses';
+        const url = editingAddressId ? `/api/addresses/${editingAddressId}` : '/api/addresses';
 
         try {
             const res = await fetch(url, {
@@ -751,7 +751,7 @@
         
         // Save to backend database
         try {
-            await fetch(`http://localhost:3000/api/profile/${encodeURIComponent(currentUser.email)}`, {
+            await fetch(`/api/profile/${encodeURIComponent(currentUser.email)}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ firstName: first, lastName: last, phone: phone })
@@ -1064,7 +1064,7 @@
         }
 
         try {
-            const res = await fetch('http://localhost:3000/api/checkout', {
+            const res = await fetch('/api/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

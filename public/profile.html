@@ -233,7 +233,7 @@
                     
                     // Save to server
                     try {
-                        await fetch(`http://localhost:3000/api/profile/${user.email}`, {
+                        await fetch(`/api/profile/${user.email}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -253,7 +253,7 @@
         });
 
         try {
-            const res = await fetch(`http://localhost:3000/api/profile/${currentUser.email}`);
+            const res = await fetch(`/api/profile/${currentUser.email}`);
             const data = await res.json();
         if (!res.ok) { console.error(data); return; }
             if (res.ok) {
@@ -287,7 +287,7 @@
 
         // Fetch Orders
         try {
-            const res = await fetch(`http://localhost:3000/api/orders/${encodeURIComponent(currentUser.email)}`);
+            const res = await fetch(`/api/orders/${encodeURIComponent(currentUser.email)}`);
             const orders = await res.json();
             if (!res.ok) { console.error(orders); return; }
             const list = document.getElementById('profile-orders-list');
@@ -474,7 +474,7 @@
             btn.disabled = true;
             btn.classList.add('opacity-75');
 
-            const res = await fetch(`http://localhost:3000/api/profile/${currentUser.email}`, {
+            const res = await fetch(`/api/profile/${currentUser.email}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password: passwordInput })

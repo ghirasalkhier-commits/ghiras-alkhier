@@ -182,7 +182,7 @@
         if (!currentUser) return;
 
         try {
-            const res = await fetch(`http://localhost:3000/api/orders/${encodeURIComponent(currentUser.email)}`);
+            const res = await fetch(`/api/orders/${encodeURIComponent(currentUser.email)}`);
             const orders = await res.json();
         if (!res.ok) { console.error(orders); return; }
             allOrders = orders;

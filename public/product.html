@@ -502,15 +502,15 @@
                     // Fetch Categories
                     const currentUserData = JSON.parse(localStorage.getItem('currentUser'));
                     const catUrl = (currentUserData && currentUserData.role === 'admin') 
-                        ? 'http://localhost:3000/api/categories?all=1' 
-                        : 'http://localhost:3000/api/categories';
+                        ? '/api/categories?all=1' 
+                        : '/api/categories';
                     const catRes = await fetch(catUrl);
                     allCategories = await catRes.json();
 
                     // Fetch Products
                     const prodUrl = (currentUserData && currentUserData.role === 'admin') 
-                        ? 'http://localhost:3000/api/products?all=1' 
-                        : 'http://localhost:3000/api/products';
+                        ? '/api/products?all=1' 
+                        : '/api/products';
                     const prodRes = await fetch(prodUrl);
                     allProducts = await prodRes.json();
 
@@ -537,7 +537,7 @@
         }
 
         try {
-            const res = await fetch(`http://localhost:3000/api/products/${id}`);
+            const res = await fetch(`/api/products/${id}`);
             if (!res.ok) throw new Error('Not found');
             const p = await res.json();
         if (!res.ok) { console.error(p); return; }

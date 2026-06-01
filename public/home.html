@@ -142,8 +142,8 @@
                 
                 const currentUserData = JSON.parse(localStorage.getItem('currentUser'));
                 const url = (currentUserData && currentUserData.role === 'admin') 
-                    ? 'http://localhost:3000/api/categories?all=1' 
-                    : 'http://localhost:3000/api/categories';
+                    ? '/api/categories?all=1' 
+                    : '/api/categories';
                 
                 const res = await fetch(url);
                 const categories = await res.json();

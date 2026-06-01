@@ -242,7 +242,7 @@
         });
 
         try {
-            const res = await fetch(`http://localhost:3000/api/profile/${currentUser.email}`);
+            const res = await fetch(`/api/profile/${currentUser.email}`);
             const data = await res.json();
         if (!res.ok) { console.error(data); return; }
             if (res.ok && data) {
@@ -348,7 +348,7 @@
             // Send update to server
             try {
                 console.log('Saving to server:', { firstName: currentUser.firstName, lastName: currentUser.lastName, phone: currentUser.phone, gender: currentUser.gender, profilePicture: currentUser.profilePicture });
-                const response = await fetch(`http://localhost:3000/api/profile/${originalEmail}`, {
+                const response = await fetch(`/api/profile/${originalEmail}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -368,7 +368,7 @@
                 if (passwordInput && !document.getElementById('set-password-container').classList.contains('hidden')) {
                     const passVal = passwordInput.value.trim();
                     if (passVal.length >= 6) {
-                        await fetch(`http://localhost:3000/api/profile/${originalEmail}/password`, {
+                        await fetch(`/api/profile/${originalEmail}/password`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ password: passVal })
