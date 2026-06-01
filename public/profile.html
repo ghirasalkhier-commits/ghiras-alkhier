@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=400, user-scalable=no">
+<meta name="referrer" content="no-referrer">
+<title>User Profile - Ghiras Alkhier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+<script src="purify.min.js"></script>
+    <script src="loader.js"></script>
+<script>
+    if (!localStorage.getItem('currentUser') || !localStorage.getItem('token')) {
+        window.location.href = 'index.html';
+    }
+</script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                },
+                colors: {
+                    primary: '#135c38',
+                    'primary-light': '#bcebd2',
+                    surface: '#fbf9f8',
+                    'surface-dim': '#f5f3f3',
+                    text: '#3d4943',
+                    'text-muted': '#6b7a73',
+                },
+                borderRadius: {
+                    '4xl': '2rem',
+                }
+            }
+        }
+    }
+</script>
+<style type="text/tailwindcss">
+    @layer utilities {
+        .shadow-soft { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .shadow-ambient { box-shadow: 0 12px 40px rgba(19, 92, 56, 0.08); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    }
+    body {
+        background-color: theme('colors.surface');
+        color: theme('colors.text');
+    }
+</style>
+</head>
+<body class="antialiased font-sans flex flex-col h-full">
+
+<!-- Header Section -->
+<div class="relative w-full bg-[#e8ebe6] pt-12 pb-8 px-6 rounded-b-4xl">
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between mb-6 relative">
+        <button class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-primary hover:bg-white/80 transition-colors shadow-soft" onclick="window.history.back()">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        
+        <button onclick="window.location.href='edit-profile.html'" class="flex h-12 w-12 items-center justify-center rounded-full bg-white text-primary font-semibold hover:bg-white/80 transition-colors shadow-soft ml-auto">
+            <span class="material-symbols-outlined">edit</span>
+        </button>
+    </div>
+    <!-- Profile Info -->
+    <div class="flex flex-col items-center gap-4">
+        <div class="relative group cursor-pointer w-32 h-32" onclick="document.getElementById('profile-upload-input').click()">
+            <img id="profile-picture" src="male-avatar.jpg" referrerpolicy="no-referrer" class="h-32 w-32 rounded-full border-4 border-white bg-surface-dim object-cover shadow-soft transition-transform group-hover:scale-105" alt="Profile Picture" />
+            <div class="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white border-2 border-white shadow-sm transition-transform group-hover:scale-110">
+                <span class="material-symbols-outlined text-[14px]">photo_camera</span>
+            </div>
+        </div>
+        <!-- Hidden File Input for Avatar Direct Upload -->
+        <input type="file" id="profile-upload-input" accept="image/*" class="hidden">
+        <div class="text-center">
+            <h2 id="profile-name" class="text-2xl font-bold text-text mb-1">Fatima Al-Zahrani</h2>
+            <div class="mt-2 inline-flex items-center gap-1 rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-primary shadow-sm">
+                <span class="material-symbols-outlined text-[16px]">eco</span>
+                Green Thumb Level <span id="user-level">0</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scrollable Content -->
+<main class="flex-1 px-6 py-8 pb-28 space-y-8 max-w-xl mx-auto w-full">
+    
+    <!-- Menu Options -->
+    <div class="flex flex-col gap-3">
+        <h3 class="text-sm font-bold text-text-muted px-2 uppercase tracking-wide">Account Settings</h3>
+        <div class="flex flex-col rounded-3xl bg-white border border-surface-dim shadow-soft overflow-hidden">
+            <!-- My Information -->
+            <button onclick="window.location.href='information.html'" class="group flex items-center justify-between p-4 hover:bg-surface-dim transition-colors border-b border-surface-dim">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <span class="font-semibold text-text">My Information</span>
+                </div>
+                <span class="material-symbols-outlined text-text-muted">chevron_right</span>
+            </button>
+            
+            <!-- Admin Dashboard -->
+            <button id="admin-btn" class="hidden group flex items-center justify-between p-4 hover:bg-surface-dim transition-colors border-b border-surface-dim" onclick="window.location.href='admin.html'">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                    </div>
+                    <span class="font-semibold text-text">Admin Dashboard</span>
+                </div>
+                <span class="material-symbols-outlined text-text-muted">chevron_right</span>
+            </button>
+
+
+            <!-- Saved Addresses -->
+            <button onclick="window.location.href='addresses.html'" class="group flex items-center justify-between p-4 hover:bg-surface-dim transition-colors border-b border-surface-dim">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#f8deb1] text-[#a66a1a] group-hover:bg-[#a66a1a] group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">location_on</span>
+                    </div>
+                    <span class="font-semibold text-text">Saved Addresses</span>
+                </div>
+                <span class="material-symbols-outlined text-text-muted">chevron_right</span>
+            </button>
+            <!-- Notification Settings -->
+            <button class="group flex items-center justify-between p-4 hover:bg-surface-dim transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#bcebd2] text-[#0d3f26] group-hover:bg-[#0d3f26] group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </div>
+                    <span class="font-semibold text-text">Notification Settings</span>
+                </div>
+                <span class="material-symbols-outlined text-text-muted">chevron_right</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- My Garden Section -->
+    <div class="flex flex-col gap-4">
+        <div class="flex items-center justify-between px-2">
+            <div>
+                <h3 class="text-xl font-bold text-text">My Garden</h3>
+                <p id="garden-count" class="text-sm text-text-muted">You have 0 plants growing</p>
+            </div>
+            <button id="see-all-garden-btn" class="text-sm font-bold text-primary hover:text-primary/80 hidden">See All</button>
+        </div>
+        <div id="profile-garden-list" class="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide snap-x">
+            <p class="text-center text-text-muted text-sm w-full">Loading your garden...</p>
+        </div>
+    </div>
+    
+    <!-- My Orders Section -->
+    <div class="flex flex-col gap-4">
+        <div class="flex items-center justify-between px-2">
+            <h3 class="text-xl font-bold text-text">My Orders</h3>
+            <button id="see-all-orders-btn" class="text-sm font-bold text-primary hover:text-primary/80 hidden" onclick="window.location.href='orders.html'">See All</button>
+        </div>
+        <div id="profile-orders-list" class="space-y-4">
+            <p class="text-center text-text-muted py-4">Loading your orders...</p>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex flex-col gap-3">
+        <button class="w-full rounded-full border border-red-200 bg-red-50 py-4 text-center text-sm font-bold text-red-600 hover:bg-red-100 transition-colors" onclick="openLogoutModal()">
+            Log Out
+        </button>
+        <button class="w-full rounded-full border border-red-600 bg-red-600 py-4 text-center text-sm font-bold text-white hover:bg-red-700 transition-colors" onclick="openDeleteModal()">
+            Delete Account
+        </button>
+    </div>
+</main>
+
+
+
+<script>
+    // Load user data on profile load
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) return;
+        
+        if (currentUser.role === 'admin') {
+            const adminBtn = document.getElementById('admin-btn');
+            if (adminBtn) adminBtn.classList.remove('hidden');
+        }
+
+        const profileNameEl = document.getElementById('profile-name');
+        if (profileNameEl) profileNameEl.textContent = currentUser.name || (currentUser.firstName ? currentUser.firstName + ' ' + (currentUser.lastName || '') : 'User');
+        
+        const profilePicEl = document.getElementById('profile-picture');
+        if (profilePicEl) {
+            if (currentUser.profilePicture) {
+                profilePicEl.src = currentUser.profilePicture;
+            } else {
+                const gender = currentUser.gender || 'male';
+                const defaultAvatar = gender === 'female' ? 'female-avatar.jpg' : 'male-avatar.jpg';
+                profilePicEl.src = defaultAvatar;
+            }
+        }
+
+        // Direct photo upload from profile page
+        document.getElementById('profile-upload-input').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const imageData = event.target.result;
+                
+                // Update preview immediately
+                if (profilePicEl) {
+                    profilePicEl.src = imageData;
+                }
+                
+                // Save to localStorage
+                const user = JSON.parse(localStorage.getItem('currentUser'));
+                if (user) {
+                    user.profilePicture = imageData;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    
+                    // Also update users array
+                    let users = JSON.parse(localStorage.getItem('users') || '[]');
+                    const idx = users.findIndex(u => u.email === user.email);
+                    if (idx !== -1) {
+                        users[idx].profilePicture = imageData;
+                        localStorage.setItem('users', JSON.stringify(users));
+                    }
+                    
+                    // Save to server
+                    try {
+                        await fetch(`http://localhost:3000/api/profile/${user.email}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                firstName: user.firstName,
+                                lastName: user.lastName,
+                                phone: user.phone,
+                                gender: user.gender,
+                                profilePicture: imageData
+                            })
+                        });
+                    } catch(err) {
+                        console.error("Error saving photo to server", err);
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/profile/${currentUser.email}`);
+            const data = await res.json();
+        if (!res.ok) { console.error(data); return; }
+            if (res.ok) {
+                const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ') || currentUser.name || "Update your profile";
+                
+                if (profileNameEl) profileNameEl.textContent = fullName;
+                
+                // update local storage
+                currentUser.name = fullName;
+                currentUser.firstName = data.firstName;
+                currentUser.lastName = data.lastName;
+                currentUser.phone = data.phone;
+                if (data.gender) currentUser.gender = data.gender;
+                if (data.profilePicture) currentUser.profilePicture = data.profilePicture;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Update pic from server data
+                if (profilePicEl) {
+                    if (data.profilePicture) {
+                        profilePicEl.src = data.profilePicture;
+                    } else {
+                        const gender = data.gender || 'male';
+                        const defaultAvatar = gender === 'female' ? 'female-avatar.jpg' : 'male-avatar.jpg';
+                        profilePicEl.src = defaultAvatar;
+                    }
+                }
+            }
+        } catch(err) {
+            console.error("Error fetching profile", err);
+        }
+
+        // Fetch Orders
+        try {
+            const res = await fetch(`http://localhost:3000/api/orders/${encodeURIComponent(currentUser.email)}`);
+            const orders = await res.json();
+            if (!res.ok) { console.error(orders); return; }
+            const list = document.getElementById('profile-orders-list');
+            const seeAllBtn = document.getElementById('see-all-orders-btn');
+
+            // --- MY GARDEN LOGIC ---
+            const gardenList = document.getElementById('profile-garden-list');
+            const gardenCount = document.getElementById('garden-count');
+            const seeAllGardenBtn = document.getElementById('see-all-garden-btn');
+            
+            let gardenItems = [];
+            const completedOrders = orders.filter(o => o.status === 'completed');
+            completedOrders.forEach(o => {
+                const data = JSON.parse(o.order_data);
+                const orderDate = new Date(o.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
+                data.items.forEach(item => {
+                    gardenItems.push({
+                        id: item.id,
+                        name: item.name,
+                        image: item.image || '',
+                        date: orderDate
+                    });
+                });
+            });
+
+            if (gardenCount) gardenCount.textContent = `You have ${gardenItems.length} plant${gardenItems.length !== 1 ? 's' : ''} growing`;
+            
+            if (gardenList) {
+                if (gardenItems.length === 0) {
+                    gardenList.innerHTML = `<p class="text-center text-text-muted text-sm w-full mt-4">Your garden is empty. Completed orders will appear here.</p>`;
+                    if (seeAllGardenBtn) seeAllGardenBtn.classList.add('hidden');
+                } else {
+                    if (seeAllGardenBtn) seeAllGardenBtn.classList.remove('hidden');
+                    gardenList.innerHTML = gardenItems.map((item, index) => {
+                        const bgs = ['bg-[#e8ebe6]', 'bg-[#e2e8e0]', 'bg-[#f8deb1]/30', 'bg-primary/5'];
+                        const bgClass = bgs[index % bgs.length];
+                        const iconClasses = ['text-blue-500', 'text-primary', 'text-orange-500', 'text-purple-500'];
+                        const iconClass = iconClasses[index % iconClasses.length];
+                        const icons = ['water_drop', 'check_circle', 'eco', 'park'];
+                        const icon = icons[index % icons.length];
+                        
+                        return `
+                        <div class="snap-start shrink-0 w-36 flex flex-col gap-3 group cursor-pointer" onclick="window.location.href='product.html?id=${item.id}'">
+                            <div class="relative aspect-[4/5] w-full overflow-hidden rounded-3xl ${bgClass}">
+                                <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 mix-blend-multiply" style="background-image: url('${item.image}');"></div>
+                                <div class="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-soft ${iconClass}">
+                                    <span class="material-symbols-outlined text-[16px]">${icon}</span>
+                                </div>
+                            </div>
+                            <div class="px-1">
+                                <p class="font-semibold text-text leading-tight truncate" title="${item.name}">${item.name}</p>
+                                <p class="text-xs text-text-muted">Purchased ${item.date}</p>
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
+                }
+            }
+            // --- END MY GARDEN LOGIC ---
+
+            if (orders.length === 0) {
+                list.innerHTML = `
+                    <div class="bg-white p-6 rounded-3xl shadow-soft text-center border border-surface-dim">
+                        <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="material-symbols-outlined text-[32px]">package_2</span>
+                        </div>
+                        <h2 class="text-lg font-bold text-text mb-1">No orders yet</h2>
+                        <p class="text-text-muted mb-4 text-sm">Your order history will appear here.</p>
+                        <button onclick="window.location.href='product.html'" class="bg-primary text-white font-bold py-2 px-6 rounded-full shadow-soft hover:bg-primary/90 transition-colors text-sm">Start Shopping</button>
+                    </div>
+                `;
+            } else {
+                if (orders.length > 1 && seeAllBtn) {
+                    seeAllBtn.classList.remove('hidden');
+                }
+                
+                // Sort orders by ID descending to get the newest one first
+                orders.sort((a, b) => b.id - a.id);
+                const displayOrders = orders.slice(0, 1);
+                
+                list.innerHTML = displayOrders.map(o => {
+                    const data = JSON.parse(o.order_data);
+                    const items = data.items.map(i => `${i.quantity}x ${i.name}`).join('<br>');
+                    const date = new Date(o.created_at).toLocaleString();
+                    
+                    let statusText = o.status;
+                    let statusClass = 'bg-surface-dim text-text-muted';
+                    if (o.status === 'pending') { statusText = 'Pending'; statusClass = 'bg-orange-100 text-orange-700'; }
+                    if (o.status === 'processing') { statusText = 'Processing'; statusClass = 'bg-yellow-100 text-yellow-800'; }
+                    if (o.status === 'on_the_way') { statusText = 'On the Way'; statusClass = 'bg-blue-100 text-blue-700'; }
+                    if (o.status === 'completed') { statusText = 'Completed'; statusClass = 'bg-[#bcebd2] text-[#135c38]'; }
+                    if (o.status === 'cancelled') { statusText = 'Cancelled'; statusClass = 'bg-red-100 text-red-700'; }
+
+                    return `
+                    <div class="bg-white p-5 rounded-3xl shadow-soft border border-surface-dim space-y-3">
+                        <div class="flex justify-between items-start border-b border-surface-dim pb-3">
+                            <div>
+                                <p class="text-xs text-text-muted font-medium mb-1">Order #${o.id}</p>
+                                <p class="text-sm font-bold text-text">${date}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">
+                                ${statusText}
+                            </span>
+                        </div>
+                        
+                        <div class="py-2">
+                            <p class="text-sm text-text leading-relaxed font-medium">${items}</p>
+                        </div>
+                        ${data.address ? `
+                        <div class="py-2 border-t border-surface-dim">
+                            <p class="text-xs text-text-muted mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">location_on</span> Delivery Address</p>
+                            <p class="text-sm font-medium text-text">${data.address.label || 'Unnamed Address'}</p>
+                        </div>
+                        ` : `
+                        <div class="py-2 border-t border-surface-dim">
+                            <p class="text-xs text-text-muted mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">storefront</span> Store Pickup</p>
+                        </div>
+                        `}
+                        
+                        <div class="flex justify-between items-center pt-3 border-t border-surface-dim">
+                            <span class="text-sm text-text-muted">Total Amount</span>
+                            <p class="font-bold text-primary">JOD ${o.total_price.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+        } catch (e) {
+            console.error("Error loading orders", e);
+            document.getElementById('profile-orders-list').innerHTML = '<p class="text-center text-text-muted py-4">Error loading orders.</p>';
+        }
+    });
+
+    // Delete Account Logic
+    function openDeleteModal() {
+        const modal = document.getElementById('delete-modal');
+        const backdrop = document.getElementById('delete-backdrop');
+        const panel = document.getElementById('delete-panel');
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('translate-y-full', 'scale-95', 'opacity-0');
+        }, 10);
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('delete-modal');
+        const backdrop = document.getElementById('delete-backdrop');
+        const panel = document.getElementById('delete-panel');
+
+        backdrop.classList.add('opacity-0');
+        panel.classList.add('translate-y-full', 'scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.getElementById('delete-password').value = '';
+            document.getElementById('delete-error-msg').classList.add('hidden');
+        }, 300);
+    }
+
+    function toggleDeletePassword() {
+        const input = document.getElementById('delete-password');
+        const icon = input.nextElementSibling.querySelector('span');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.textContent = 'visibility_off';
+        } else {
+            input.type = 'password';
+            icon.textContent = 'visibility';
+        }
+    }
+
+    async function confirmDeleteAccount() {
+        const passwordInput = document.getElementById('delete-password').value;
+        const errorMsg = document.getElementById('delete-error-msg');
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+        if (!currentUser) return;
+
+        try {
+            const btn = document.getElementById('confirm-delete-btn');
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Deleting...';
+            btn.disabled = true;
+            btn.classList.add('opacity-75');
+
+            const res = await fetch(`http://localhost:3000/api/profile/${currentUser.email}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: passwordInput })
+            });
+
+            const data = await res.json();
+        if (!res.ok) { console.error(data); return; }
+
+            if (res.ok) {
+                localStorage.removeItem('currentUser');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 800);
+            } else {
+                btn.innerHTML = 'Delete';
+                btn.disabled = false;
+                btn.classList.remove('opacity-75');
+
+                errorMsg.textContent = data.error || 'Incorrect password. Please try again.';
+                errorMsg.classList.remove('hidden');
+                document.getElementById('delete-password').classList.add('border-red-500');
+
+                document.getElementById('delete-password').addEventListener('input', function clearErr() {
+                    errorMsg.classList.add('hidden');
+                    this.classList.remove('border-red-500');
+                    this.removeEventListener('input', clearErr);
+                });
+            }
+        } catch (e) {
+            console.error(e);
+            errorMsg.textContent = 'Server error. Please try again later.';
+            errorMsg.classList.remove('hidden');
+            const btn = document.getElementById('confirm-delete-btn');
+            btn.innerHTML = 'Delete';
+            btn.disabled = false;
+            btn.classList.remove('opacity-75');
+        }
+    }
+
+    // Logout Modal Logic
+    function openLogoutModal() {
+        const modal = document.getElementById('logout-modal');
+        const backdrop = document.getElementById('logout-backdrop');
+        const panel = document.getElementById('logout-panel');
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('translate-y-full', 'scale-95', 'opacity-0');
+        }, 10);
+    }
+
+    function closeLogoutModal() {
+        const modal = document.getElementById('logout-modal');
+        const backdrop = document.getElementById('logout-backdrop');
+        const panel = document.getElementById('logout-panel');
+
+        backdrop.classList.add('opacity-0');
+        panel.classList.add('translate-y-full', 'scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function confirmLogout() {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'index.html';
+    }
+</script>
+
+<!-- Logout Confirmation Modal -->
+<div id="logout-modal" class="fixed inset-0 z-[100] hidden">
+    <div id="logout-backdrop" class="absolute inset-0 bg-text/40 backdrop-blur-sm opacity-0 transition-opacity duration-300" onclick="closeLogoutModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4 h-full">
+        <div id="logout-panel" class="w-full max-w-md bg-white rounded-4xl p-6 shadow-2xl transform translate-y-full scale-95 opacity-0 transition-all duration-300 flex flex-col items-center">
+            <div class="h-16 w-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-[32px]">logout</span>
+            </div>
+            <h3 class="text-xl font-bold text-text mb-2 text-center">Are you sure?</h3>
+            <p class="text-sm text-text-muted text-center mb-6">Do you really want to log out of your account?</p>
+
+            <div class="flex gap-3 w-full mt-2">
+                <button class="flex-1 py-3.5 rounded-full font-bold text-text bg-surface-dim hover:bg-surface-dim/80 transition-colors" onclick="closeLogoutModal()">No</button>
+                <button class="flex-1 py-3.5 rounded-full font-bold text-white bg-red-500 hover:bg-red-600 shadow-soft transition-all active:scale-[0.98]" onclick="confirmLogout()">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div id="delete-modal" class="fixed inset-0 z-[100] hidden">
+    <div id="delete-backdrop" class="absolute inset-0 bg-text/40 backdrop-blur-sm opacity-0 transition-opacity duration-300" onclick="closeDeleteModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4 h-full">
+        <div id="delete-panel" class="w-full max-w-md bg-white rounded-4xl p-6 shadow-2xl transform translate-y-full scale-95 opacity-0 transition-all duration-300 flex flex-col items-center">
+            <div class="h-16 w-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-[32px]">warning</span>
+            </div>
+            <h3 class="text-xl font-bold text-text mb-2 text-center">Delete Account?</h3>
+            <p class="text-sm text-text-muted text-center mb-6">This action cannot be undone. All your orders, saved addresses, and garden data will be <strong class="text-red-500">deleted</strong>.</p>
+
+            <div class="w-full mb-6">
+                <label class="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2 ml-4" for="delete-password">Confirm Password</label>
+                <div class="relative group">
+                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-text-muted group-focus-within:text-red-500 transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">lock</span>
+                    </span>
+                    <input id="delete-password" type="password" required class="w-full py-4 pl-12 pr-12 bg-white border border-surface-dim rounded-full focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all text-sm text-text placeholder-text-muted outline-none" placeholder="Enter your password" />
+                    <button type="button" onclick="toggleDeletePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-text-muted hover:text-text transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">visibility</span>
+                    </button>
+                </div>
+                <p id="delete-error-msg" class="text-xs font-bold text-red-500 mt-2 hidden ml-4"></p>
+            </div>
+
+            <div class="flex gap-3 w-full">
+                <button class="flex-1 py-3.5 rounded-full font-bold text-text bg-surface-dim hover:bg-surface-dim/80 transition-colors" onclick="closeDeleteModal()">Cancel</button>
+                <button id="confirm-delete-btn" class="flex-1 py-3.5 rounded-full font-bold text-white bg-red-500 hover:bg-red-600 shadow-soft transition-all active:scale-[0.98]" onclick="confirmDeleteAccount()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Cart Modal -->
+<div id="cart-modal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div id="cart-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="toggleCart()"></div>
+
+    <!-- Modal Panel -->
+    <div id="cart-panel" class="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto bg-[#fbf9f8] rounded-t-4xl shadow-[0_-12px_40px_rgba(19,92,56,0.12)] transform transition-transform duration-300 ease-out translate-y-full top-[15%] flex flex-col border border-white/50">
+        <!-- Handle for dragging (visual cue) -->
+        <div class="w-full flex justify-center pt-4 pb-2 cursor-pointer" onclick="toggleCart()">
+            <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+        </div>
+
+        <!-- Header -->
+        <div class="px-6 py-4 flex items-center justify-between border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-[#135c38]">Your Cart</h2>
+            <button class="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full text-gray-700 hover:bg-[#135c38] hover:text-white transition-colors" onclick="toggleCart()">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6">
+            <!-- Cart Items List -->
+            <div id="cart-items-container" class="space-y-4">
+                <!-- Items will be rendered here by cart.js -->
+            </div>
+            
+            <!-- Promo Code -->
+            <div class="pt-2">
+                <div class="bg-white p-2 pr-2 rounded-full flex items-center border border-gray-200 focus-within:ring-2 focus-within:ring-[#135c38]/20 focus-within:border-[#135c38] transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-gray-400 ml-3">sell</span>
+                    <input class="bg-transparent border-none text-sm w-full focus:ring-0 text-gray-800 placeholder-gray-400 ml-2 outline-none" placeholder="Promo Code" type="text" />
+                    <button class="bg-[#135c38] text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-[#135c38]/90 transition-colors ml-2">Apply</button>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 space-y-3 mb-6">
+                <div class="flex justify-between items-center text-sm text-gray-500">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal" class="font-medium text-gray-800">JOD 0.00</span>
+                </div>
+                <div class="h-px bg-gray-200 my-2"></div>
+                <div class="flex justify-between items-center text-base">
+                    <span class="font-semibold text-[#135c38]">Total</span>
+                    <span id="cart-total" class="font-bold text-lg text-[#135c38]">JOD 0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Button Area -->
+        <div class="p-6 border-t border-gray-200 bg-[#fbf9f8]/90 backdrop-blur-md pb-8">
+            <button class="w-full min-h-[56px] bg-[#135c38] text-white text-base font-medium rounded-full shadow-soft hover:bg-[#135c38]/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" onclick="window.location.href='checkout.html'">
+                Proceed to Checkout
+                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm bg-white/80 backdrop-blur-xl border border-white/40 shadow-ambient rounded-full px-6 py-3 z-50 flex justify-between items-center">
+    <a href="home.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" >home</span>
+        <span class="text-[10px] font-medium tracking-wide">Home</span>
+    </a>
+    <a href="product.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" >grid_view</span>
+        <span class="text-[10px] font-medium tracking-wide">Shop</span>
+    </a>
+    <button onclick="toggleCart()" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors relative">
+        <span class="material-symbols-outlined text-[24px]" >shopping_cart</span>
+        <span class="text-[10px] font-medium tracking-wide">Cart</span>
+        <span class="cart-badge absolute -top-1 -right-2 bg-[#f8deb1] text-[#a66a1a] text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white hidden">0</span>
+    </button>
+    <a href="profile.html" class="flex flex-col items-center gap-1 text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">person</span>
+        <span class="text-[10px] font-medium tracking-wide">Profile</span>
+    </a>
+</nav>
+
+<script src="cart.js"></script>
+</body>
+</html>

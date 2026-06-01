@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=400, user-scalable=no">
+<title>Plant Product Details - Ghiras Alkhier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+<script src="purify.min.js"></script>
+    <script src="loader.js"></script>
+<script>
+    if (!localStorage.getItem('currentUser') || !localStorage.getItem('token')) {
+        window.location.href = 'index.html';
+    }
+</script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                },
+                colors: {
+                    primary: '#135c38',
+                    'primary-light': '#bcebd2',
+                    surface: '#fbf9f8',
+                    'surface-dim': '#f5f3f3',
+                    text: '#3d4943',
+                    'text-muted': '#6b7a73',
+                },
+                borderRadius: {
+                    '4xl': '2rem',
+                }
+            }
+        }
+    }
+</script>
+<style type="text/tailwindcss">
+    @layer utilities {
+        .shadow-soft { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .shadow-ambient { box-shadow: 0 12px 40px rgba(19, 92, 56, 0.08); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-3d {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(24px) saturate(200%);
+            -webkit-backdrop-filter: blur(24px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            box-shadow: 
+                0 4px 30px rgba(0, 0, 0, 0.03), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                0 12px 32px -4px rgba(19, 92, 56, 0.22),
+                0 20px 48px -8px rgba(19, 92, 56, 0.15);
+        }
+    }
+    body {
+        background: linear-gradient(135deg, #eaf6ee 0%, #fbf9f8 50%, #eaf6ee 100%);
+        color: theme('colors.text');
+    }
+</style>
+</head>
+<body class="antialiased font-sans flex flex-col h-full pb-32">
+
+<!-- Header (Floating - Details View Only) -->
+<header id="detail-header" class="fixed top-0 w-full z-40 px-6 py-4 flex justify-between items-center pointer-events-none max-w-xl left-1/2 -translate-x-1/2">
+    <button class="pointer-events-auto h-12 w-12 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-md text-primary shadow-soft hover:bg-white transition-colors" onclick="if(window.history.length > 1 && document.referrer.includes(window.location.host)) { window.history.back(); } else { window.location.href='home.html'; }">
+        <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <div class="pointer-events-auto flex gap-3 hidden">
+        <!-- Cart and Favorite buttons removed per user request -->
+    </div>
+</header>
+
+<!-- Main Details View -->
+<main id="detail-main" class="w-full max-w-xl mx-auto">
+    <!-- Hero Image Area -->
+    <div class="relative w-full h-[55vh] rounded-b-4xl overflow-hidden bg-[#e8ebe6]" id="hero-image-container">
+        <!-- Image will be injected here -->
+    </div>
+
+    <!-- Product Details -->
+    <div class="px-6 mt-6 relative z-10">
+        <!-- Main Card -->
+        <div id="product-container" class="min-h-[40vh] flex flex-col items-center justify-center">
+            <p class="text-text-muted">Loading product details...</p>
+        </div>
+
+        <!-- Checkout Button Area -->
+        <div class="px-2 pt-4 pb-12">
+            <button class="w-full min-h-[56px] bg-[#135c38] text-white text-base font-medium rounded-full shadow-ambient hover:bg-[#135c38]/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" onclick="if(window.addToCartWithQty && window.addToCartWithQty()) { window.location.href='product.html'; }">
+                Add to Cart
+                <span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+            </button>
+        </div>
+    </div>
+</main>
+
+<!-- Main Shop Listing View (Ghiras Shop) -->
+<main id="shop-listing-main" class="hidden w-full max-w-xl mx-auto px-6 pt-24 pb-16 flex-1 flex flex-col">
+    <!-- Floating Header -->
+    <header class="fixed top-4 left-1/2 -translate-x-1/2 w-fit glass-3d rounded-full h-14 z-50 flex items-center justify-center pl-4 pr-6">
+        <a class="flex items-center gap-3 transform hover:scale-[1.02] transition-transform" href="product.html" dir="ltr">
+            <img src="logo.jpg" alt="Ghiras Alkhier Logo" class="w-8 h-8 object-contain rounded-full shadow-sm">
+            <span class="text-lg font-extrabold text-primary tracking-tight whitespace-nowrap">Ghiras Alkhier</span>
+        </a>
+    </header>
+
+    <!-- Search bar -->
+    <div class="relative mb-8 mt-2">
+        <input type="text" id="shop-search" oninput="filterShop()" class="min-h-[48px] w-full bg-[#eef8f2]/90 backdrop-blur-md border border-[#bcebd2] rounded-full py-3.5 pl-12 pr-6 text-sm shadow-soft focus:ring-2 focus:ring-primary/25 focus:border-primary outline-none text-text placeholder:text-text-muted" placeholder="Search for plants or care tools...">
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
+            <span class="material-symbols-outlined text-[20px]">search</span>
+        </div>
+    </div>
+
+    <!-- Hand-drawn Artist Brush Divider -->
+    <div class="w-[calc(100%+3rem)] -ml-6 my-6 opacity-90 relative z-10">
+        <svg class="w-full h-5 text-primary" viewBox="0 0 1000 24" fill="currentColor" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,12 C200,2 300,20 500,8 C700,20 800,2 1000,12 C800,6 700,24 500,14 C300,24 200,6 0,12 Z" />
+            <path d="M0,12 C250,6 350,26 500,14 C650,26 750,6 1000,12 C750,10 650,28 500,18 C350,28 250,10 0,12 Z" opacity="0.5" />
+            <path d="M0,12 C150,0 250,17 500,5 C750,17 850,0 1000,12 C850,4 750,19 500,11 C250,19 150,4 0,12 Z" opacity="0.3" />
+        </svg>
+    </div>
+
+    <!-- Categories Section -->
+    <section class="mb-8">
+        <div class="flex flex-col items-center justify-center text-center mb-4 px-1">
+            <h3 class="text-primary font-black text-base">Discover Our Categories</h3>
+            <button id="clear-filter-btn" onclick="clearCategoryFilter()" class="hidden text-primary text-xs font-semibold border border-primary/50 px-3 py-1.5 rounded-full hover:bg-primary-light/30 transition-colors flex items-center gap-1 mt-2">
+                <span class="material-symbols-outlined text-[16px]">close</span>
+                Clear Filter
+            </button>
+        </div>
+        <div id="shop-categories-container" class="flex flex-wrap justify-center gap-3.5 mx-auto max-w-sm px-1">
+            <!-- Dynamic categories injected here -->
+        </div>
+    </section>
+
+    <!-- Hand-drawn Artist Brush Divider -->
+    <div class="w-[calc(100%+3rem)] -ml-6 my-6 opacity-90 relative z-10">
+        <svg class="w-full h-5 text-primary" viewBox="0 0 1000 24" fill="currentColor" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,12 C200,2 300,20 500,8 C700,20 800,2 1000,12 C800,6 700,24 500,14 C300,24 200,6 0,12 Z" />
+            <path d="M0,12 C250,6 350,26 500,14 C650,26 750,6 1000,12 C750,10 650,28 500,18 C350,28 250,10 0,12 Z" opacity="0.5" />
+        </svg>
+    </div>
+
+    <!-- Products Grid Section -->
+    <section class="flex-1">
+        <h3 id="shop-products-title" class="text-primary font-black text-base text-center mb-4 px-1">All Plants and Products</h3>
+        <div id="shop-products-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Dynamic products injected here -->
+        </div>
+    </section>
+</main>
+
+
+<!-- Cart Modal -->
+<div id="cart-modal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div id="cart-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="toggleCart()"></div>
+
+    <!-- Modal Panel -->
+    <div id="cart-panel" class="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto bg-[#fbf9f8] rounded-t-4xl shadow-[0_-12px_40px_rgba(19,92,56,0.12)] transform transition-transform duration-300 ease-out translate-y-full top-[15%] flex flex-col border border-white/50">
+        <!-- Handle for dragging (visual cue) -->
+        <div class="w-full flex justify-center pt-4 pb-2 cursor-pointer" onclick="toggleCart()">
+            <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+        </div>
+
+        <!-- Header -->
+        <div class="px-6 py-4 flex items-center justify-between border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-[#135c38]">Your Cart</h2>
+            <button class="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full text-gray-700 hover:bg-[#135c38] hover:text-white transition-colors" onclick="toggleCart()">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6">
+            <!-- Cart Items List -->
+            <div id="cart-items-container" class="space-y-4">
+                <!-- Items will be rendered here by cart.js -->
+            </div>
+            
+            <!-- Promo Code -->
+            <div class="pt-2">
+                <div class="bg-white p-2 pr-2 rounded-full flex items-center border border-gray-200 focus-within:ring-2 focus-within:ring-[#135c38]/20 focus-within:border-[#135c38] transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-gray-400 ml-3">sell</span>
+                    <input class="bg-transparent border-none text-sm w-full focus:ring-0 text-gray-800 placeholder-gray-400 ml-2 outline-none" placeholder="Promo Code" type="text" />
+                    <button class="bg-[#135c38] text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-[#135c38]/90 transition-colors ml-2">Apply</button>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 space-y-3 mb-6">
+                <div class="flex justify-between items-center text-sm text-gray-500">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal" class="font-medium text-gray-800">JOD 0.00</span>
+                </div>
+                <div class="h-px bg-gray-200 my-2"></div>
+                <div class="flex justify-between items-center text-base">
+                    <span class="font-semibold text-[#135c38]">Total</span>
+                    <span id="cart-total" class="font-bold text-lg text-[#135c38]">JOD 0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Button Area -->
+        <div class="p-6 border-t border-gray-200 bg-[#fbf9f8]/90 backdrop-blur-md pb-8">
+            <button class="w-full min-h-[56px] bg-[#135c38] text-white text-base font-medium rounded-full shadow-soft hover:bg-[#135c38]/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" onclick="window.location.href='checkout.html'">
+                Proceed to Checkout
+                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm glass-3d rounded-full px-6 py-3.5 z-50 flex justify-between items-center">
+    <a href="home.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" >home</span>
+        <span class="text-[10px] font-medium tracking-wide">Home</span>
+    </a>
+    <a href="product.html" class="flex flex-col items-center gap-1 text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+        <span class="text-[10px] font-medium tracking-wide">Shop</span>
+    </a>
+    <button onclick="toggleCart()" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors relative">
+        <span class="material-symbols-outlined text-[24px]" >shopping_cart</span>
+        <span class="text-[10px] font-medium tracking-wide">Cart</span>
+        <span class="cart-badge absolute -top-1 -right-2 bg-[#f8deb1] text-[#a66a1a] text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white hidden">0</span>
+    </button>
+    <a href="profile.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" >person</span>
+        <span class="text-[10px] font-medium tracking-wide">Profile</span>
+    </a>
+</nav>
+
+<script src="cart.js"></script>
+<script>
+    // Simple local quantity logic before adding to cart
+    let currentQty = 1;
+    const qtyValue = document.getElementById('qty-value');
+    
+    const minusBtn = document.getElementById('qty-minus'); if(minusBtn) minusBtn.addEventListener('click', () => {
+        if (currentQty > 1) {
+            currentQty--;
+            qtyValue.textContent = currentQty;
+        }
+    });
+    
+    const plusBtn = document.getElementById('qty-plus'); if(plusBtn) plusBtn.addEventListener('click', () => { if (window.currentProductStock !== undefined && currentQty >= window.currentProductStock) { if (window.Cart && window.Cart.showToast) { window.Cart.showToast('Sorry, not enough stock!', true); } else { alert('Sorry, the requested quantity exceeds the available stock!'); } return; } currentQty++; qtyValue.textContent = currentQty; });
+
+    function addToCartWithQty() {
+        // Assume Cart.add supports passing quantity if we modify it, or we add multiple times
+        // Looking at typical cart logic, we'll just add it once and rely on Cart logic to handle duplicates,
+        // but since we want to specify qty, let's inject it into local storage manually if needed,
+        // or just call Cart.add multiple times for simplicity based on the existing `cart.js`.
+        const product = { 
+            name: 'Monstera Deliciosa', 
+            price: 45.00, 
+            image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDgfqIEmpISE73PfR6IywYG_bhJ0FKm2JkPJHCBAkTS7CAl4MwTS5SV9emMJqqD7n5MlL341z6MdTwE_B8GDPy77c1mCHQwPDL1NZs7AOdunJgfLLP1d7ODkN1lRvVBBpVfj3pb1ptwgUEOKmp7F18bpFns2Kmp_IpwU0FduDn1F0nkdWOk90qVHPVTzxdcI40emzL4YhcQ548QpQlBdFt9SwyOMoESOglLdxTFo9TvEBKuo5YpUjfJPErIimZuj7ODCy1RVgf8FNKz' 
+        };
+        
+        // We'll call Cart.add for the first one to trigger animation/toast if it has it
+        if (window.Cart && window.Cart.add) {
+             // For multiple qty, we add it 'currentQty' times
+             for (let i=0; i < currentQty; i++) {
+                 // only pass event to first one so we don't trigger animation multiple times overlapping
+                 Cart.add(product, i === 0 ? event : null);
+             }
+        }
+    }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+
+        if (!id) {
+            // Act as Shop Page
+            document.getElementById('detail-header').classList.add('hidden');
+            document.getElementById('detail-main').classList.add('hidden');
+            document.getElementById('shop-listing-main').classList.remove('hidden');
+            
+            document.title = "Ghiras Shop";
+            
+            if (sessionStorage.getItem('itemAddedToCart') === 'true') {
+                sessionStorage.removeItem('itemAddedToCart');
+                setTimeout(() => {
+                    if (window.Cart && window.Cart.showToast) {
+                        window.Cart.showToast('تمت إضافة المنتج إلى السلة بنجاح');
+                    }
+                }, 300);
+            }
+            
+            let allProducts = [];
+            let allCategories = [];
+            let selectedCategory = null;
+
+            window.filterShop = function() {
+                renderShopProducts();
+            };
+
+            window.clearCategoryFilter = function() {
+                selectedCategory = null;
+                renderShopCategories();
+                renderShopProducts();
+                document.getElementById('clear-filter-btn').classList.add('hidden');
+                document.getElementById('shop-products-title').textContent = 'All Plants and Products';
+            };
+
+            window.filterByCategory = function(categoryName) {
+                if (selectedCategory === categoryName) {
+                    selectedCategory = null;
+                } else {
+                    selectedCategory = categoryName;
+                }
+                renderShopCategories();
+                renderShopProducts();
+                
+                const clearBtn = document.getElementById('clear-filter-btn');
+                if (selectedCategory) {
+                    clearBtn.classList.remove('hidden');
+                    document.getElementById('shop-products-title').textContent = `Products in ${selectedCategory}`;
+                } else {
+                    clearBtn.classList.add('hidden');
+                    document.getElementById('shop-products-title').textContent = 'All Plants and Products';
+                }
+            };
+
+            function renderShopCategories() {
+                const container = document.getElementById('shop-categories-container');
+                if (allCategories.length === 0) {
+                    container.innerHTML = '<p class="text-text-muted text-xs text-center w-full">No categories.</p>';
+                    return;
+                }
+                
+                // If already rendered, just update classes for smooth animation
+                if (container.children.length === allCategories.length && container.querySelector('article')) {
+                    const articles = container.querySelectorAll('article');
+                    articles.forEach(article => {
+                        const catName = article.getAttribute('data-category-name');
+                        const isSelected = selectedCategory === catName;
+                        const isUnselected = selectedCategory && !isSelected;
+                        
+                        // Update container classes (light blur)
+                        if (isUnselected) {
+                            article.classList.add('opacity-50', 'blur-[1px]');
+                            article.classList.remove('opacity-100');
+                        } else {
+                            article.classList.add('opacity-100');
+                            article.classList.remove('opacity-50', 'blur-[1px]');
+                        }
+                        
+                        // Update inner div classes
+                        const innerDiv = article.querySelector('div');
+                        if (isSelected) {
+                            innerDiv.classList.add('border-primary', 'ring-2', 'ring-primary/20', 'scale-[1.05]');
+                            innerDiv.classList.remove('border-white');
+                        } else {
+                            innerDiv.classList.add('border-white');
+                            innerDiv.classList.remove('border-primary', 'ring-2', 'ring-primary/20', 'scale-[1.05]');
+                        }
+                        
+                        // Update text classes
+                        const title = article.querySelector('h4');
+                        if (isSelected) {
+                            title.classList.add('text-primary');
+                            title.classList.remove('text-text');
+                        } else {
+                            title.classList.add('text-text');
+                            title.classList.remove('text-primary');
+                        }
+                    });
+                    return;
+                }
+
+                container.innerHTML = allCategories.map(cat => {
+                    const displayImage = cat.image || 'https://via.placeholder.com/400?text=' + encodeURIComponent(cat.name);
+                    const isSelected = selectedCategory === cat.name;
+                    const isUnselected = selectedCategory && !isSelected;
+                    return `
+                        <article data-category-name="${cat.name}" class="cursor-pointer transform hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 ease-out flex flex-col items-center justify-center text-center w-[72px] ${isUnselected ? 'opacity-50 blur-[1px]' : 'opacity-100'}" onclick="filterByCategory('${cat.name.replace(/'/g, "\\'")}')">
+                            <div class="relative w-16 h-16 rounded-2xl overflow-hidden mb-2 shadow-soft border-2 bg-white flex items-center justify-center transition-all duration-300 ease-out ${isSelected ? 'border-primary ring-2 ring-primary/20 scale-[1.05]' : 'border-white'}">
+                                ${cat.is_visible === 0 ? `<span class="absolute inset-0 bg-red-950/65 flex items-center justify-center text-[10px] text-white font-bold rounded-2xl">Hidden</span>` : ''}
+                                <img alt="${cat.name}" class="w-full h-full object-cover rounded-2xl" src="${displayImage}"/>
+                            </div>
+                            <h4 class="font-black text-[12px] transition-colors duration-300 ${isSelected ? 'text-primary' : 'text-text'} text-center leading-tight line-clamp-1 w-full px-0.5">${cat.name}</h4>
+                        </article>
+                    `;
+                }).join('');
+            }
+
+            function renderShopProducts() {
+                const grid = document.getElementById('shop-products-grid');
+                const searchVal = document.getElementById('shop-search').value.toLowerCase().trim();
+
+                let filtered = allProducts;
+
+                // Filter by Category
+                if (selectedCategory) {
+                    filtered = filtered.filter(p => p.category && p.category.trim().toLowerCase() === selectedCategory.trim().toLowerCase());
+                }
+
+                // Filter by Search Query
+                if (searchVal) {
+                    filtered = filtered.filter(p => 
+                        (p.name && p.name.toLowerCase().includes(searchVal)) || 
+                        (p.description && p.description.toLowerCase().includes(searchVal))
+                    );
+                }
+
+                if (filtered.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <span class="material-symbols-outlined text-4xl text-text-muted mb-2">sentiment_dissatisfied</span>
+                            <p class="text-text-muted text-sm">We couldn't find any products matching your search.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const displayProducts = filtered.filter(p => p.stock === undefined || p.stock > 0).map(p => {
+                    let firstImage = p.image;
+                    let allImages = [p.image];
+                    try {
+                        const parsed = JSON.parse(p.image);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            firstImage = parsed[0];
+                            allImages = parsed;
+                        }
+                    } catch(e) {}
+                    
+                    window.productImageMap = window.productImageMap || {};
+                    window.productImageMap[p.id] = allImages;
+                    
+                    return { ...p, firstImage: firstImage || 'https://via.placeholder.com/400', allImages };
+                });
+
+                window.nextShopImage = function(productId, direction) {
+                    const images = window.productImageMap[productId];
+                    if (!images || images.length <= 1) return;
+                    
+                    const imgEl = document.getElementById(`shop-img-${productId}`);
+                    if (!imgEl) return;
+                    
+                    let currentIndex = parseInt(imgEl.getAttribute('data-img-index') || '0', 10);
+                    currentIndex = (currentIndex + direction + images.length) % images.length;
+                    
+                    imgEl.src = images[currentIndex];
+                    imgEl.setAttribute('data-img-index', currentIndex);
+                    
+                    images.forEach((_, i) => {
+                        const dot = document.getElementById(`shop-img-dot-${productId}-${i}`);
+                        if (dot) {
+                            dot.className = i === currentIndex 
+                                ? "w-2 h-2 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.5)] transition-all" 
+                                : "w-2 h-2 rounded-full bg-white/50 shadow-[0_1px_2px_rgba(0,0,0,0.3)] transition-all hover:bg-white/70";
+                        }
+                    });
+                };
+
+                grid.innerHTML = displayProducts.map(p => `
+                    <article class="bg-white rounded-4xl p-4 shadow-soft hover:shadow-ambient hover:border-primary/20 transform hover:scale-[1.01] transition-all duration-300 border border-[#e8ebe6] bg-gradient-to-b from-white to-[#f4faf7]/40">
+                        <div class="relative aspect-square rounded-3xl overflow-hidden mb-5 bg-[#e8ebe6] shadow-inner group">
+                            ${p.tag ? `<span class="absolute top-4 left-4 bg-[#f8deb1] text-[#a66a1a] text-xs font-semibold px-3 py-1.5 rounded-full z-10">${p.tag}</span>` : ''}
+                            ${p.is_visible === 0 ? `<span class="absolute top-4 right-4 bg-red-100 text-red-600 text-xs font-semibold px-3 py-1.5 rounded-full z-10">Hidden</span>` : ''}
+                            <img id="shop-img-${p.id}" alt="${p.name}" class="w-full h-full object-cover object-center mix-blend-multiply transition-transform duration-300 hover:scale-105 cursor-pointer" src="${p.firstImage}" onclick="window.location.href='product.html?id=${p.id}'" data-img-index="0" />
+                            ${p.allImages.length > 1 ? `
+                                <button onclick="event.stopPropagation(); window.nextShopImage(${p.id}, -1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-primary opacity-80 hover:opacity-100 transition-opacity z-20 shadow-md hover:bg-white cursor-pointer">
+                                    <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                                </button>
+                                <button onclick="event.stopPropagation(); window.nextShopImage(${p.id}, 1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-primary opacity-80 hover:opacity-100 transition-opacity z-20 shadow-md hover:bg-white cursor-pointer">
+                                    <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                                </button>
+                                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20 pointer-events-none">
+                                    ${p.allImages.map((_, i) => `<div id="shop-img-dot-${p.id}-${i}" class="${i === 0 ? 'w-2 h-2 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.5)] transition-all' : 'w-2 h-2 rounded-full bg-white/50 shadow-[0_1px_2px_rgba(0,0,0,0.3)] transition-all hover:bg-white/70'}"></div>`).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="px-2">
+                            <h4 class="font-extrabold text-2xl md:text-3xl mb-1 text-primary leading-snug cursor-pointer" onclick="window.location.href='product.html?id=${p.id}'">${p.name}</h4>
+                            <p class="text-text-muted text-xs leading-relaxed mb-4 line-clamp-2">${p.description}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-primary font-bold text-base">JOD ${p.price.toFixed(2)}</span>
+                                <button onclick='Cart.add({ id: ${p.id}, name: "${p.name.replace(/'/g, "\\'")}", price: ${p.price}, image: "${p.firstImage}", stock: ${p.stock} }, event)' aria-label="Add ${p.name} to cart" class="min-w-[44px] min-h-[44px] flex items-center justify-center bg-surface-dim rounded-full text-text hover:bg-primary-light hover:text-primary transition-colors z-20 relative">
+                                    <span class="material-symbols-outlined text-[18px]">add</span>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                `).join('');
+            }
+
+            async function loadShop() {
+                try {
+                    // Fetch Categories
+                    const currentUserData = JSON.parse(localStorage.getItem('currentUser'));
+                    const catUrl = (currentUserData && currentUserData.role === 'admin') 
+                        ? 'http://localhost:3000/api/categories?all=1' 
+                        : 'http://localhost:3000/api/categories';
+                    const catRes = await fetch(catUrl);
+                    allCategories = await catRes.json();
+
+                    // Fetch Products
+                    const prodUrl = (currentUserData && currentUserData.role === 'admin') 
+                        ? 'http://localhost:3000/api/products?all=1' 
+                        : 'http://localhost:3000/api/products';
+                    const prodRes = await fetch(prodUrl);
+                    allProducts = await prodRes.json();
+
+                    // Pre-select category from URL if present
+                    const params = new URLSearchParams(window.location.search);
+                    const catParam = params.get('category');
+                    if (catParam) {
+                        selectedCategory = catParam;
+                        const clearBtn = document.getElementById('clear-filter-btn');
+                        if (clearBtn) clearBtn.classList.remove('hidden');
+                        const titleEl = document.getElementById('shop-products-title');
+                        if (titleEl) titleEl.textContent = `Products in ${selectedCategory}`;
+                    }
+
+                    renderShopCategories();
+                    renderShopProducts();
+                } catch(e) {
+                    console.error('Error loading shop data', e);
+                }
+            }
+
+            await loadShop();
+            return;
+        }
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/products/${id}`);
+            if (!res.ok) throw new Error('Not found');
+            const p = await res.json();
+        if (!res.ok) { console.error(p); return; }
+
+            // Set Image
+                        if (p.stock !== undefined && p.stock <= 0) {
+                const addToCartBtn = document.querySelector('button[onclick="addToCartWithQty()"]');
+                if (addToCartBtn) {
+                    addToCartBtn.disabled = true;
+                    addToCartBtn.innerHTML = 'Out of Stock';
+                    addToCartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+            // Extract image url
+            let heroImage = p.image;
+            try {
+                const parsed = JSON.parse(p.image);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    heroImage = parsed[0];
+                }
+            } catch(e) {}
+            
+            document.getElementById('hero-image-container').innerHTML = `
+                <img alt="${p.name}" class="w-full h-full object-cover mix-blend-multiply" src="${heroImage}" />
+            `;
+
+            let formattedWatering = p.watering;
+            if (p.watering && p.watering.includes('|')) {
+                const parts = p.watering.split('|');
+                if (parts.length === 2) {
+                    const count = parseInt(parts[0]);
+                    const period = parts[1].toLowerCase();
+                    let unit = period;
+                    if (period.endsWith('s')) unit = period.slice(0, -1);
+                    formattedWatering = count + ' time' + (count > 1 ? 's' : '') + ' each ' + unit;
+                }
+            }
+
+            // Set Details
+            document.getElementById('product-container').innerHTML = `
+                <div class="mb-6 px-2">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="space-y-1.5 flex-1 pr-4">
+                            <h1 class="text-3xl font-black text-text leading-tight">${p.name}</h1>
+                        </div>
+                        <div class="flex flex-col items-end shrink-0">
+                            <span class="text-2xl font-black text-primary">JOD ${p.price.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hand-drawn Artist Brush Divider -->
+                <div class="w-[calc(100%+3rem)] -ml-6 my-6 opacity-90 relative z-10">
+                    <svg class="w-full h-5 text-primary" viewBox="0 0 1000 24" fill="currentColor" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0,12 C200,2 300,20 500,8 C700,20 800,2 1000,12 C800,6 700,24 500,14 C300,24 200,6 0,12 Z" />
+                        <path d="M0,12 C250,6 350,26 500,14 C650,26 750,6 1000,12 C750,10 650,28 500,18 C350,28 250,10 0,12 Z" opacity="0.5" />
+                        <path d="M0,12 C150,0 250,17 500,5 C750,17 850,0 1000,12 C850,4 750,19 500,11 C250,19 150,4 0,12 Z" opacity="0.3" />
+                    </svg>
+                </div>
+
+                ${formattedWatering ? `
+                <!-- Watering -->
+                <div class="space-y-3 mb-6 bg-blue-50 p-5 rounded-3xl border border-blue-200">
+                    <h2 class="text-base font-bold text-blue-600 flex items-center gap-2"><span class="material-symbols-outlined text-blue-500">water_drop</span> Watering Frequency</h2>
+                    <p class="text-blue-900 leading-relaxed text-sm whitespace-pre-wrap font-medium">${formattedWatering}</p>
+                </div>
+                ` : ''}
+
+                <!-- Description -->
+                <div class="space-y-4 mb-8 bg-white p-6 rounded-4xl shadow-soft border border-surface-dim">
+                    <h2 class="text-lg font-bold text-text">About this product</h2>
+                    <p class="text-gray-800 font-medium leading-relaxed text-base whitespace-pre-wrap">${p.description}</p>
+                </div>
+            `;
+
+            // Override Add to Cart button logic
+            window.addToCartWithQty = function() {
+                const qtyElement = document.getElementById('qty-value');
+                const qty = qtyElement ? (parseInt(qtyElement.innerText) || 1) : 1;
+                
+                let items = JSON.parse(localStorage.getItem('ghiras_cart_' + (JSON.parse(localStorage.getItem('currentUser'))?.email || 'guest'))) || [];
+                const itemIndex = items.findIndex(i => i.id === p.id || i.name === p.name);
+                
+                if (itemIndex > -1) {
+                    if (p.stock !== undefined && items[itemIndex].quantity + qty > p.stock) {
+                        if (window.Cart && window.Cart.showToast) { window.Cart.showToast('عذراً، لا توجد كمية كافية في المخزون!', true); } else { alert('عذراً، الكمية المطلوبة تتجاوز عدد القطع المتاحة!'); }
+                        return false;
+                    }
+                    items[itemIndex].quantity += qty;
+                } else {
+                    if (p.stock !== undefined && qty > p.stock) {
+                        if (window.Cart && window.Cart.showToast) { window.Cart.showToast('عذراً، لا توجد كمية كافية في المخزون!', true); } else { alert('عذراً، الكمية المطلوبة تتجاوز عدد القطع المتاحة!'); }
+                        return false;
+                    }
+                    items.push({
+                        id: p.id,
+                        name: p.name,
+                        price: p.price,
+                        image: (function(){ try { return JSON.parse(p.image)[0]; } catch(e){ return p.image || 'https://via.placeholder.com/400'; }})(),
+                        quantity: qty,
+                        stock: p.stock
+                    });
+                }
+                
+                localStorage.setItem('ghiras_cart_' + (JSON.parse(localStorage.getItem('currentUser'))?.email || 'guest'), JSON.stringify(items));
+                
+                if (window.Cart) {
+                    Cart.updateCartCount();
+                }
+                sessionStorage.setItem('itemAddedToCart', 'true');
+                return true;
+            };
+
+        } catch (e) {
+            document.getElementById('product-container').innerHTML = '<p class="text-center text-text-muted">Error loading product.</p>';
+        }
+    });
+
+    // Handle qty buttons (these are in the sticky bottom nav)
+    document.addEventListener('DOMContentLoaded', () => {
+        const minus = document.getElementById('qty-minus');
+        const plus = document.getElementById('qty-plus');
+        const val = document.getElementById('qty-value');
+        if (minus && plus && val) {
+            minus.onclick = () => {
+                let v = parseInt(val.innerText);
+                if (v > 1) val.innerText = v - 1;
+            };
+            plus.onclick = () => { let v = parseInt(val.innerText); if (window.currentProductStock !== undefined && v >= window.currentProductStock) { if (window.Cart && window.Cart.showToast) { window.Cart.showToast('عذراً، لا توجد كمية كافية في المخزون!', true); } else { alert('عذراً، الكمية المطلوبة تتجاوز عدد القطع المتاحة!'); } return; } val.innerText = v + 1; };
+        }
+    });
+</script>
+</body>
+</html>

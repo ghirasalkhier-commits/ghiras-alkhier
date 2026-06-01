@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=400, user-scalable=no">
+    <title>My Orders - Ghiras Alkhier</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !localStorage.getItem('token')) {
+            window.location.href = 'index.html';
+        }
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#135c38',
+                        'primary-light': '#bcebd2',
+                        surface: '#fbf9f8',
+                        'surface-dim': '#f5f3f3',
+                        text: '#3d4943',
+                        'text-muted': '#6b7a73',
+                    },
+                    borderRadius: {
+                        '4xl': '2rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .shadow-soft { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        }
+        body {
+            background-color: theme('colors.surface');
+            color: theme('colors.text');
+        }
+    </style>
+<script src="purify.min.js"></script>
+    <script src="loader.js"></script>
+</head>
+<body class="antialiased font-sans flex flex-col h-full min-h-screen">
+
+<!-- Header -->
+<header class="sticky top-0 z-40 bg-surface/90 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-surface-dim">
+    <button aria-label="Back" class="min-w-[48px] min-h-[48px] flex items-center justify-center text-primary hover:bg-surface-dim rounded-full transition-colors" onclick="window.location.href='profile.html'">
+        <span class="material-symbols-outlined text-[24px]">arrow_back</span>
+    </button>
+    <h1 class="text-lg font-bold text-primary flex-1 text-center pr-12">My Orders</h1>
+</header>
+
+<!-- Tabs -->
+<div class="sticky top-[81px] z-30 bg-surface flex border-b border-surface-dim px-4">
+    <button onclick="setTab('active')" id="tab-active" class="flex-1 py-3 text-sm font-bold text-primary border-b-2 border-primary transition-colors text-center">Active</button>
+    <button onclick="setTab('completed')" id="tab-completed" class="flex-1 py-3 text-sm font-bold text-text-muted border-b-2 border-transparent hover:text-primary transition-colors text-center">Completed</button>
+    <button onclick="setTab('cancelled')" id="tab-cancelled" class="flex-1 py-3 text-sm font-bold text-text-muted border-b-2 border-transparent hover:text-primary transition-colors text-center">Cancelled</button>
+</div>
+
+<main class="flex-1 pb-28 max-w-xl mx-auto w-full px-4 pt-4">
+    
+    <div id="orders-list" class="space-y-4">
+        <p class="text-center text-text-muted py-4">Loading your orders...</p>
+    </div>
+
+</main>
+
+<script>
+    let allOrders = [];
+    let currentTab = 'active';
+
+    function setTab(tab) {
+        currentTab = tab;
+        // Update tabs UI
+        const tabs = ['active', 'completed', 'cancelled'];
+        tabs.forEach(t => {
+            const el = document.getElementById(`tab-${t}`);
+            if (t === tab) {
+                el.classList.add('text-primary', 'border-primary');
+                el.classList.remove('text-text-muted', 'border-transparent');
+            } else {
+                el.classList.remove('text-primary', 'border-primary');
+                el.classList.add('text-text-muted', 'border-transparent');
+            }
+        });
+        renderOrders();
+    }
+
+    function renderOrders() {
+        const list = document.getElementById('orders-list');
+        
+        let filteredOrders = allOrders.filter(o => {
+            if (currentTab === 'active') {
+                return ['pending', 'processing', 'on_the_way'].includes(o.status);
+            } else if (currentTab === 'completed') {
+                return o.status === 'completed';
+            } else if (currentTab === 'cancelled') {
+                return o.status === 'cancelled';
+            }
+            return true;
+        });
+
+        // Sort orders by ID descending to show newest first
+        filteredOrders.sort((a, b) => b.id - a.id);
+
+        if (filteredOrders.length === 0) {
+            list.innerHTML = `
+                <div class="bg-white p-8 rounded-4xl shadow-soft text-center border border-surface-dim mt-8">
+                    <div class="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="material-symbols-outlined text-[40px]">package_2</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-text mb-2">No orders found</h2>
+                    <p class="text-text-muted mb-6 text-sm">You have no ${currentTab} orders.</p>
+                    <button onclick="window.location.href='product.html'" class="bg-primary text-white font-bold py-3 px-8 rounded-full shadow-soft hover:bg-primary/90 transition-colors">Start Shopping</button>
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = filteredOrders.map(o => {
+            let data = { items: [] };
+            try {
+                data = JSON.parse(o.order_data);
+            } catch (e) {
+                console.error("Failed to parse order data", o.order_data);
+            }
+            const items = data.items.map(i => `${i.quantity}x ${i.name}`).join('<br>');
+            const date = new Date(o.created_at).toLocaleString();
+            
+            let statusText = o.status;
+            let statusClass = 'bg-surface-dim text-text-muted';
+            if (o.status === 'pending') { statusText = 'Pending'; statusClass = 'bg-orange-100 text-orange-700'; }
+            if (o.status === 'processing') { statusText = 'Processing'; statusClass = 'bg-yellow-100 text-yellow-800'; }
+            if (o.status === 'on_the_way') { statusText = 'On the Way'; statusClass = 'bg-blue-100 text-blue-700'; }
+            if (o.status === 'completed') { statusText = 'Completed'; statusClass = 'bg-[#bcebd2] text-[#135c38]'; }
+            if (o.status === 'cancelled') { statusText = 'Cancelled'; statusClass = 'bg-red-100 text-red-700'; }
+
+            return `
+            <div class="bg-white p-5 rounded-3xl shadow-soft border border-surface-dim space-y-3">
+                <div class="flex justify-between items-start border-b border-surface-dim pb-3">
+                    <div>
+                        <p class="text-xs text-text-muted font-medium mb-1">Order #${o.id}</p>
+                        <p class="text-sm font-bold text-text">${date}</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">
+                        ${statusText}
+                    </span>
+                </div>
+                
+                <div class="py-2">
+                    <p class="text-sm text-text leading-relaxed font-medium">${items}</p>
+                </div>
+                ${data.address ? `
+                <div class="py-2 border-t border-surface-dim">
+                    <p class="text-xs text-text-muted mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">location_on</span> Delivery Address</p>
+                    <p class="text-sm font-medium text-text">${data.address.label || 'Unnamed Address'}</p>
+                </div>
+                ` : `
+                <div class="py-2 border-t border-surface-dim">
+                    <p class="text-xs text-text-muted mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">storefront</span> Store Pickup</p>
+                </div>
+                `}
+                
+                <div class="flex justify-between items-center pt-3 border-t border-surface-dim">
+                    <span class="text-sm text-text-muted">Total Amount</span>
+                    <p class="font-bold text-primary">JOD ${o.total_price.toFixed(2)}</p>
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) return;
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/orders/${encodeURIComponent(currentUser.email)}`);
+            const orders = await res.json();
+        if (!res.ok) { console.error(orders); return; }
+            allOrders = orders;
+            renderOrders();
+        } catch (e) {
+            console.error(e);
+            document.getElementById('orders-list').innerHTML = '<p class="text-center text-text-muted py-4">Error loading orders.</p>';
+        }
+    });
+</script>
+</body>
+</html>

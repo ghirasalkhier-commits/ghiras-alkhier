@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=400, user-scalable=no">
+    <title>Admin Dashboard - Ghiras Alkhier</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="purify.min.js"></script>
+    <script src="loader.js"></script>
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const token = localStorage.getItem('token');
+        if (!currentUser || !token) {
+            window.location.href = 'index.html';
+        } else if (currentUser.role !== 'admin') {
+            alert('Access Denied: Admins Only');
+            window.location.href = 'home.html';
+        }
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#135c38',
+                        'primary-light': '#bcebd2',
+                        surface: '#fbf9f8',
+                        'surface-dim': '#f5f3f3',
+                        text: '#3d4943',
+                        'text-muted': '#6b7a73',
+                    },
+                    borderRadius: {
+                        '4xl': '2rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .shadow-soft { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        }
+        body {
+            background-color: theme('colors.surface');
+            color: theme('colors.text');
+        }
+        .tab-active {
+            border-bottom: 2px solid theme('colors.primary');
+            color: theme('colors.primary');
+            font-weight: 700;
+        }
+        .tab-inactive {
+            color: theme('colors.text-muted');
+            font-weight: 500;
+        }
+    </style>
+
+    <style>
+        /* Hide number input spinners */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="antialiased font-sans flex flex-col h-full min-h-screen">
+
+<!-- Header -->
+<header class="sticky top-0 z-40 bg-surface/90 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-surface-dim">
+    <h1 class="text-lg font-bold text-primary flex-1 text-center">Admin Dashboard</h1>
+</header>
+
+<main class="flex-1 pb-28 max-w-xl mx-auto w-full px-4 pt-4">
+    
+
+
+    <!-- Products Section -->
+    <section id="sec-products" class="block">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-primary">Manage Products</h2>
+            <button onclick="document.getElementById('product-form-container').classList.toggle('hidden')" class="bg-primary text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 shadow-soft">
+                <span class="material-symbols-outlined text-[18px]">add</span> Add
+            </button>
+        </div>
+
+        <!-- Add Product Form -->
+        <div id="product-form-container" class="hidden bg-white p-4 rounded-3xl shadow-soft mb-6 border border-surface-dim">
+            <h3 class="font-bold text-text mb-3" id="form-title">Add New Product</h3>
+            <form id="product-form" onsubmit="saveProduct(event)" class="space-y-3">
+                <input type="hidden" id="product-id">
+                <div>
+                    <label class="block text-xs text-text-muted mb-1 ml-1">Name</label>
+                    <input type="text" id="product-name" required class="w-full bg-surface-dim border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20">
+                </div>
+                <div>
+                    <label class="block text-xs text-text-muted mb-1 ml-1">Description</label>
+                    <textarea id="product-desc" required class="w-full bg-surface-dim border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-text-muted mb-1 ml-1">Price (JOD)</label>
+                        <input type="number" step="0.01" id="product-price" required class="w-full bg-surface-dim border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-text-muted mb-1 ml-1">Category</label>
+                        <div class="relative" id="custom-category-select">
+                            <input type="hidden" id="product-category">
+                            <div id="category-display" class="w-full bg-surface-dim border-none rounded-2xl pl-4 pr-10 py-3 text-sm text-text cursor-pointer flex items-center justify-between focus:ring-2 focus:ring-primary/20 transition-all hover:bg-surface-dim/80" onclick="toggleCategoryDropdown()">
+                                <span id="category-display-text" class="truncate">Select Category</span>
+                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none transition-transform duration-300" id="category-arrow">expand_more</span>
+                            </div>
+                            <!-- Dropdown List -->
+                            <ul id="category-dropdown" class="absolute z-50 w-full bg-white mt-2 rounded-2xl shadow-soft border border-surface-dim overflow-hidden hidden max-h-48 overflow-y-auto">
+                                <!-- Populated dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-text-muted mb-1 ml-1">Product Images (You can select multiple)</label>
+                    <div class="relative group">
+                        <input type="file" id="product-images" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <div class="w-full bg-surface-dim border-2 border-dashed border-primary/20 group-hover:border-primary/50 group-hover:bg-primary/5 transition-all rounded-2xl px-4 py-8 text-center flex flex-col items-center justify-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-soft text-primary group-hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined">add_photo_alternate</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-text">Click here to upload images</p>
+                                <p class="text-xs text-text-muted mt-1">Supports JPG, PNG, WEBP</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p id="existing-images-label" class="text-xs text-primary mt-1 hidden"></p>
+                    <input type="hidden" id="existing-images-data">
+                    <div id="image-preview-container" class="flex flex-wrap gap-2 mt-3 empty:hidden"></div>
+                </div>
+                <div class="bg-blue-50/50 p-4 rounded-2xl mb-4 border border-blue-100">
+                    <label class="flex items-center gap-1 text-xs font-bold text-blue-400 mb-2 ml-1"><span class="material-symbols-outlined text-blue-500" style="font-size: 16px;">water_drop</span> Watering Frequency (كم مرة يجب ري المنتج)</label>
+                    <div class="flex gap-2 relative" id="custom-watering-select">
+                        <input type="number" id="product-watering-number" min="1" value="1" class="w-20 bg-white border border-blue-100 rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-primary/20 text-center">
+                        <div class="relative flex-1">
+                            <input type="hidden" id="product-watering-unit" value="Days">
+                            <div id="watering-display" class="w-full bg-white border border-blue-100 rounded-xl pl-4 pr-10 py-3 text-sm text-text cursor-pointer flex items-center justify-between focus:ring-2 focus:ring-primary/20 transition-all hover:bg-gray-50" onclick="toggleWateringDropdown()">
+                                <span id="watering-display-text" class="truncate">Daily (باليوم)</span>
+                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none transition-transform duration-300" id="watering-arrow">expand_more</span>
+                            </div>
+                            <!-- Dropdown List -->
+                            <ul id="watering-dropdown" class="absolute z-50 w-full bg-white mt-2 rounded-xl shadow-soft border border-surface-dim overflow-hidden hidden max-h-48 overflow-y-auto">
+                                <li onclick="selectWateringUnit('Hours', 'Hourly (بالساعة)')" class="px-4 py-3 hover:bg-surface-dim cursor-pointer text-sm text-text transition-colors">Hourly (بالساعة)</li>
+                                <li onclick="selectWateringUnit('Days', 'Daily (باليوم)')" class="px-4 py-3 hover:bg-surface-dim cursor-pointer text-sm text-text transition-colors border-t border-surface-dim/50">Daily (باليوم)</li>
+                                <li onclick="selectWateringUnit('Weeks', 'Weekly (بالأسبوع)')" class="px-4 py-3 hover:bg-surface-dim cursor-pointer text-sm text-text transition-colors border-t border-surface-dim/50">Weekly (بالأسبوع)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-primary mb-1 ml-1">Quantity/Stock (عدد القطع المتاحة)</label>
+                    <input type="number" id="product-stock" min="0" value="1" class="w-full bg-surface-dim border-none rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20">
+                </div>
+                <button type="submit" class="w-full bg-primary text-white py-3 rounded-full font-bold shadow-soft">Save Product</button>
+            </form>
+        </div>
+
+        <div id="products-list" class="space-y-4">
+            <!-- Products will be listed here -->
+            <p class="text-center text-text-muted py-4">Loading products...</p>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section id="sec-categories" class="hidden">
+        <h2 class="text-xl font-bold text-primary mb-4">Manage Categories</h2>
+        
+        <form id="categoryForm" onsubmit="saveCategory(event)" class="flex flex-col gap-3 mb-6 bg-white p-4 rounded-3xl shadow-soft border border-surface-dim">
+            <input type="hidden" id="category-id">
+            <input type="text" id="category-name" required placeholder="New Category Name" class="bg-surface border border-surface-dim px-4 py-2 rounded-xl text-sm focus:ring-1 focus:ring-primary w-full">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <input type="file" id="category-image" accept="image/*" class="w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                <button type="submit" class="w-full sm:w-auto bg-primary text-white px-6 py-2 rounded-full text-sm font-semibold shadow-soft shrink-0">Save Category</button>
+            </div>
+        </form>
+
+        <div id="categories-list" class="space-y-3">
+            <!-- Categories listed here -->
+        </div>
+    </section>
+
+    <!-- Orders Section -->
+    <section id="sec-orders" class="hidden">
+        <h2 class="text-xl font-bold text-primary mb-4">Manage Orders</h2>
+        
+        <div class="mb-4 relative">
+            <input type="text" id="order-search" oninput="renderOrders()" placeholder="Search by Order ID..." class="w-full bg-white border border-surface-dim rounded-2xl px-4 py-3 pl-11 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm transition-all text-text">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">search</span>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex flex-wrap gap-2 mb-4 bg-white p-2 rounded-2xl border border-surface-dim shadow-sm">
+            <button onclick="setOrderFilter('current')" id="btn-filter-current" class="flex-1 py-2 px-4 rounded-xl text-sm font-bold bg-primary text-white transition-colors">Current</button>
+            <button onclick="setOrderFilter('completed')" id="btn-filter-completed" class="flex-1 py-2 px-4 rounded-xl text-sm font-bold bg-surface text-text-muted hover:bg-surface-dim transition-colors">Delivered</button>
+            <button onclick="setOrderFilter('cancelled')" id="btn-filter-cancelled" class="flex-1 py-2 px-4 rounded-xl text-sm font-bold bg-surface text-text-muted hover:bg-surface-dim transition-colors">Cancelled</button>
+        </div>
+
+        <div id="orders-list" class="space-y-4">
+            <!-- Orders listed here -->
+        </div>
+    </section>
+
+    <!-- Users Section -->
+    <section id="sec-users" class="hidden">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+            Registered Accounts 
+            <span id="users-total-count" class="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full font-bold">0</span>
+        </h2>
+        
+        <div class="mb-4 relative">
+            <input type="text" id="user-search" oninput="filterUsers()" placeholder="Search by name, email, or phone..." class="w-full bg-white border border-surface-dim rounded-2xl px-4 py-3 pl-11 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm transition-all text-text">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">search</span>
+        </div>
+
+        <div id="users-list" class="space-y-4">
+            <!-- Users listed here -->
+        </div>
+    </section>
+    </section>
+
+    <!-- User Details Modal -->
+    <div id="user-details-modal" class="fixed inset-0 z-50 hidden flex flex-col items-center justify-end sm:justify-center bg-text/40 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+        <div class="bg-surface w-full sm:w-[90%] max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl transform translate-y-full sm:translate-y-8 transition-transform duration-300 max-h-[85vh] flex flex-col" id="user-modal-content">
+            <div class="flex justify-between items-center mb-4 shrink-0">
+                <h3 class="text-xl font-bold text-primary">User Details</h3>
+                <button onclick="closeUserDetailsModal()" class="bg-surface-dim hover:bg-gray-200 p-2 rounded-full text-text-muted transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto pr-1 pb-24 flex-1">
+                <div class="bg-white p-4 rounded-2xl shadow-soft border border-surface-dim mb-4">
+                    <div class="flex items-center gap-3 border-b border-surface-dim pb-3 mb-3">
+                        <div class="w-12 h-12 bg-primary-light text-primary rounded-full flex items-center justify-center font-bold text-lg">
+                            <span id="modal-user-initial">U</span>
+                        </div>
+                        <div>
+                            <h4 id="modal-user-name" class="font-bold text-text text-lg">Name</h4>
+                            <p id="modal-user-role" class="text-xs font-bold text-text-muted bg-surface-dim px-2 py-0.5 rounded-full inline-block mt-1">Role</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-start gap-2">
+                            <span class="material-symbols-outlined text-[18px] text-text-muted">mail</span>
+                            <span id="modal-user-email" class="text-text break-all">email@example.com</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px] text-text-muted">call</span>
+                            <span id="modal-user-phone" class="text-text">Not provided</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px] text-text-muted">location_on</span>
+                            <span id="modal-user-country" class="text-text font-semibold">Unknown</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px] text-text-muted">person</span>
+                            <span id="modal-user-gender" class="text-text capitalize">Unknown</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="font-bold text-text mb-2 px-1">User Orders</h4>
+                <div id="modal-user-orders" class="space-y-3">
+                    <!-- Orders injected here -->
+                    <p class="text-sm text-text-muted text-center py-4">Loading orders...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+    const API_URL = 'http://localhost:3000/api';
+    let selectedFiles = [];
+
+    function switchTab(tab) {
+        ['products', 'categories', 'orders', 'users'].forEach(t => {
+            document.getElementById(`nav-${t}`).className = 'flex flex-col items-center gap-1 text-text-muted hover:text-primary transition-colors';
+            document.getElementById(`nav-${t}`).querySelector('span').style.fontVariationSettings = "'FILL' 0";
+            document.getElementById(`sec-${t}`).classList.add('hidden');
+        });
+        document.getElementById(`nav-${tab}`).className = 'flex flex-col items-center gap-1 text-primary transition-colors';
+        document.getElementById(`nav-${tab}`).querySelector('span').style.fontVariationSettings = "'FILL' 1";
+        document.getElementById(`sec-${tab}`).classList.remove('hidden');
+
+        if (tab === 'products') loadProducts();
+        if (tab === 'categories') loadCategories();
+        if (tab === 'orders') loadOrders();
+        if (tab === 'users') loadUsers();
+    }
+
+    // --- PRODUCTS ---
+    async function loadProducts() {
+        try {
+            loadCategoriesForSelect();
+            const res = await fetch(`${API_URL}/products?all=1`, { cache: 'no-cache' });
+            const products = await res.json();
+        if (!res.ok) { console.error(products); return; }
+            const list = document.getElementById('products-list');
+            
+            if (products.length === 0) {
+                list.innerHTML = '<p class="text-center text-text-muted py-4">No products found.</p>';
+                return;
+            }
+
+            list.innerHTML = products.map(p => {
+                const isVisible = p.is_visible !== 0;
+                return `
+                <div class="relative bg-white p-4 rounded-3xl shadow-soft border border-surface-dim flex gap-4 items-center ${p.stock !== undefined && p.stock <= 0 ? 'opacity-75' : ''} ${!isVisible ? 'opacity-50' : ''}">
+                    ${p.stock !== undefined && p.stock <= 0 ? `<div class="absolute -top-2 -right-2 bg-red-500 text-white font-bold text-xs rounded-full h-6 w-6 flex items-center justify-center border-2 border-white shadow-sm z-10" title="Out of Stock">0</div>` : ''}
+                    <img src="${(()=>{ try { return JSON.parse(p.image)[0]; } catch(e){ return p.image || 'https://via.placeholder.com/150'; } })()}" class="w-16 h-16 rounded-xl object-cover bg-surface-dim">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-text">${p.name} ${!isVisible ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full ml-2">Hidden</span>' : ''}</h4>
+                        <p class="text-xs text-text-muted">${p.category || 'No Category'} | JOD ${p.price.toFixed(2)}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="toggleVisibility('products', ${p.id}, ${isVisible ? 0 : 1})" class="${isVisible ? 'text-text-muted hover:text-red-500' : 'text-primary'} hover:bg-surface-dim p-2 rounded-full transition-colors" title="${isVisible ? 'Hide Product' : 'Show Product'}">
+                            <span class="material-symbols-outlined text-[20px]">${isVisible ? 'visibility_off' : 'visibility'}</span>
+                        </button>
+                        <button onclick='editProduct(${JSON.stringify(p).replace(/'/g, "&apos;")})' class="text-primary hover:bg-primary-light p-2 rounded-full transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+                        <button onclick="deleteProduct(${p.id})" class="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+                    </div>
+                </div>
+            `}).join('');
+
+            // Also reload categories for the select dropdown
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function loadCategoriesForSelect() {
+        const res = await fetch(`${API_URL}/categories?all=1`, { cache: 'no-cache' });
+        const cats = await res.json();
+        if (!res.ok) { console.error(cats); return; }
+        const dropdown = document.getElementById('category-dropdown');
+        
+        let html = `<li onclick="selectCategory('', 'Select Category')" class="px-4 py-3 hover:bg-surface-dim cursor-pointer text-sm text-text transition-colors">Select Category</li>`;
+        html += cats.map(c => `<li onclick="selectCategory('${c.name}', '${c.name}')" class="px-4 py-3 hover:bg-surface-dim cursor-pointer text-sm text-text transition-colors border-t border-surface-dim/50">${c.name}</li>`).join('');
+        
+        dropdown.innerHTML = html;
+    }
+
+    
+    function toggleWateringDropdown() {
+        const dropdown = document.getElementById('watering-dropdown');
+        const arrow = document.getElementById('watering-arrow');
+        dropdown.classList.toggle('hidden');
+        arrow.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    function selectWateringUnit(value, text) {
+        document.getElementById('product-watering-unit').value = value;
+        document.getElementById('watering-display-text').innerText = text;
+        toggleWateringDropdown();
+    }
+
+    function toggleCategoryDropdown() {
+        const dropdown = document.getElementById('category-dropdown');
+        const arrow = document.getElementById('category-arrow');
+        dropdown.classList.toggle('hidden');
+        arrow.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    function selectCategory(value, text) {
+        document.getElementById('product-category').value = value;
+        document.getElementById('category-display-text').innerText = text || 'Select Category';
+        toggleCategoryDropdown();
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const selectContainer = document.getElementById('custom-category-select');
+        const dropdown = document.getElementById('category-dropdown');
+        const arrow = document.getElementById('category-arrow');
+        const wateringContainer = document.getElementById('custom-watering-select');
+        const wateringDropdown = document.getElementById('watering-dropdown');
+        const wateringArrow = document.getElementById('watering-arrow');
+        if (wateringContainer && wateringDropdown && wateringArrow && !wateringContainer.contains(e.target)) {
+            wateringDropdown.classList.add('hidden');
+            wateringArrow.style.transform = 'rotate(0deg)';
+        }
+
+        if (selectContainer && dropdown && arrow && !selectContainer.contains(e.target)) {
+            dropdown.classList.add('hidden');
+            arrow.style.transform = 'rotate(0deg)';
+        }
+    });
+
+    async function saveProduct(e) {
+        e.preventDefault();
+        const id = document.getElementById('product-id').value;
+        const formData = new FormData();
+        
+        formData.append('name', document.getElementById('product-name').value);
+        formData.append('description', document.getElementById('product-desc').value);
+        formData.append('price', parseFloat(document.getElementById('product-price').value));
+        formData.append('category', document.getElementById('product-category').value);
+        formData.append('stock', document.getElementById('product-stock').value);
+        const watering = document.getElementById('product-watering-number').value + '|' + document.getElementById('product-watering-unit').value;
+        formData.append('watering', watering);
+        
+        if (selectedFiles.length > 0) {
+            for(let i=0; i < selectedFiles.length; i++){
+                formData.append('images', selectedFiles[i]);
+            }
+        }
+        if (id) {
+            formData.append('existingImages', document.getElementById('existing-images-data').value);
+        }
+
+        const url = id ? `${API_URL}/products/${id}` : `${API_URL}/products`;
+        const method = id ? 'PUT' : 'POST';
+
+        await fetch(url, {
+            method,
+            body: formData
+        });
+
+        document.getElementById('product-form').reset();
+        document.getElementById('product-id').value = '';
+        document.getElementById('product-category').value = '';
+        document.getElementById('product-watering-number').value = '1';
+        document.getElementById('product-watering-unit').value = 'Days';
+        document.getElementById('watering-display-text').innerText = 'Daily (باليوم)';
+        document.getElementById('category-display-text').innerText = 'Select Category';
+        document.getElementById('existing-images-label').classList.add('hidden');
+        document.getElementById('existing-images-data').value = '';
+        document.getElementById('image-preview-container').innerHTML = '';
+        document.getElementById('form-title').innerText = 'Add New Product';
+        selectedFiles = [];
+        document.getElementById('product-form-container').classList.add('hidden');
+        loadProducts();
+    }
+
+
+    // Image Preview Logic (Robust Accumulation)
+    document.getElementById('product-images').addEventListener('change', function(e) {
+        try {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            
+            selectedFiles = selectedFiles.concat(files);
+            renderPreviews();
+            
+            // Allow re-selection of the same file
+            e.target.value = '';
+        } catch (error) {
+            console.error("Preview error:", error);
+            alert("حدث خطأ في معاينة الصورة، يرجى المحاولة مرة أخرى.");
+        }
+    });
+    
+    function removeSelectedFile(index) {
+        selectedFiles.splice(index, 1);
+        renderPreviews();
+    }
+    
+    function renderPreviews() {
+        const previewContainer = document.getElementById('image-preview-container');
+        previewContainer.innerHTML = '';
+        
+        // 1. Existing DB Images
+        try {
+            const existingStr = document.getElementById('existing-images-data').value;
+            if (existingStr) {
+                const existing = JSON.parse(existingStr);
+                existing.forEach(imgSrc => {
+                    const div = document.createElement('div');
+                    div.className = 'relative inline-block';
+                    const img = document.createElement('img');
+                    img.src = imgSrc;
+                    img.className = "w-16 h-16 object-cover rounded-xl border border-surface-dim shadow-sm opacity-75";
+                    div.appendChild(img);
+                    previewContainer.appendChild(div);
+                });
+            }
+        } catch(e) { console.error("Error parsing existing images:", e); }
+
+        // 2. New Files using FileReader for better robustness
+        selectedFiles.forEach((file, index) => {
+            const div = document.createElement('div');
+            div.className = 'relative inline-block';
+            
+            const img = document.createElement('img');
+            img.className = "w-16 h-16 object-cover rounded-xl border-2 border-primary shadow-sm";
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            
+            div.appendChild(img);
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">close</span>';
+            removeBtn.className = 'absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center cursor-pointer';
+            removeBtn.onclick = function(ev) {
+                ev.preventDefault();
+                removeSelectedFile(index);
+            };
+            div.appendChild(removeBtn);
+            
+            previewContainer.appendChild(div);
+        });
+    }
+    
+    function editProduct(p) {
+        document.getElementById('product-form-container').classList.remove('hidden');
+        document.getElementById('form-title').innerText = 'Edit Product';
+        document.getElementById('product-id').value = p.id;
+        document.getElementById('product-name').value = p.name;
+        document.getElementById('product-desc').value = p.description;
+        document.getElementById('product-price').value = p.price;
+        document.getElementById('product-category').value = p.category || '';
+        document.getElementById('category-display-text').innerText = p.category || 'Select Category';
+        document.getElementById('product-stock').value = p.stock !== undefined ? p.stock : 1;
+        if (p.watering) {
+            const parts = p.watering.split('|');
+            document.getElementById('product-watering-number').value = parts[0] || '1';
+            const unit = parts[1] || 'Days';
+            document.getElementById('product-watering-unit').value = unit;
+            const textMap = { 'Hours': 'Hourly (بالساعة)', 'Days': 'Daily (باليوم)', 'Weeks': 'Weekly (بالأسبوع)' };
+            document.getElementById('watering-display-text').innerText = textMap[unit] || 'Daily (باليوم)';
+        } else {
+            document.getElementById('product-watering-number').value = '1';
+            document.getElementById('product-watering-unit').value = 'Days';
+            document.getElementById('watering-display-text').innerText = 'Daily (باليوم)';
+        }
+
+        
+        let images = [];
+        try { images = JSON.parse(p.image); } catch(e) { images = p.image ? [p.image] : []; }
+        
+        const existingLabel = document.getElementById('existing-images-label');
+        selectedFiles = []; // clear any pending uploads
+        if (images.length > 0) {
+            existingLabel.innerText = `Currently has ${images.length} image(s). Uploading new ones will replace them.`;
+            existingLabel.classList.remove('hidden');
+            document.getElementById('existing-images-data').value = JSON.stringify(images);
+        } else {
+            existingLabel.classList.add('hidden');
+            document.getElementById('existing-images-data').value = '';
+        }
+        
+        document.getElementById('product-images').value = ''; // clear file input
+        renderPreviews();
+        window.scrollTo(0,0);
+    }
+
+    async function deleteProduct(id) {
+        if(confirm('Are you sure you want to delete this product?')) {
+            await fetch(`${API_URL}/products/${id}`, { method: 'DELETE' });
+            loadProducts();
+        }
+    }
+
+    // --- CATEGORIES ---
+    async function loadCategories() {
+        const res = await fetch(`${API_URL}/categories?all=1`, { cache: 'no-cache' });
+        const cats = await res.json();
+        if (!res.ok) { console.error(cats); return; }
+        const list = document.getElementById('categories-list');
+        
+        if (cats.length === 0) {
+            list.innerHTML = '<p class="text-center text-text-muted py-4">No categories found.</p>';
+            return;
+        }
+
+        list.innerHTML = cats.map(c => {
+            const isVisible = c.is_visible !== 0;
+            return `
+            <div class="bg-white p-4 rounded-3xl shadow-soft border border-surface-dim flex justify-between items-center ${!isVisible ? 'opacity-60' : ''}">
+                <div class="flex items-center gap-4">
+                    ${c.image ? `<img src="${c.image}" class="w-12 h-12 rounded-xl object-cover mix-blend-multiply bg-[#e8ebe6]">` : `<div class="w-12 h-12 rounded-xl bg-surface-dim flex items-center justify-center"><span class="material-symbols-outlined text-text-muted">image</span></div>`}
+                    <span class="font-bold text-text">${c.name} ${!isVisible ? '<span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full ml-2">Hidden</span>' : ''}</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="toggleVisibility('categories', ${c.id}, ${isVisible ? 0 : 1})" class="${isVisible ? 'text-text-muted hover:text-red-500' : 'text-primary'} hover:bg-surface-dim p-2 rounded-full transition-colors" title="${isVisible ? 'Hide Category' : 'Show Category'}">
+                        <span class="material-symbols-outlined text-[20px]">${isVisible ? 'visibility_off' : 'visibility'}</span>
+                    </button>
+                    <button onclick='editCategory(${JSON.stringify(c).replace(/'/g, "&apos;")})' class="text-primary hover:bg-primary-light p-2 rounded-full transition-colors" title="Edit Category"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+                    <button onclick="deleteCategory(${c.id})" class="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors" title="Delete Category"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    async function saveCategory(e) {
+        e.preventDefault();
+        const id = document.getElementById('category-id').value;
+        const name = document.getElementById('category-name').value;
+        const imageFile = document.getElementById('category-image').files[0];
+        
+        const formData = new FormData();
+        formData.append('name', name);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `${API_URL}/categories/${id}` : `${API_URL}/categories`;
+
+        await fetch(url, {
+            method: method,
+            body: formData
+        });
+        
+        document.getElementById('category-id').value = '';
+        document.getElementById('category-name').value = '';
+        document.getElementById('category-image').value = '';
+        document.querySelector('#categoryForm button[type="submit"]').textContent = 'Save Category';
+        loadCategories();
+        loadCategoriesForSelect();
+    }
+
+    function editCategory(c) {
+        document.getElementById('category-id').value = c.id;
+        document.getElementById('category-name').value = c.name;
+        document.querySelector('#categoryForm button[type="submit"]').textContent = 'Update Category';
+        
+        // Ensure categories tab is active
+        showTab('categories');
+        
+        // Scroll to the form
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    
+    async function toggleVisibility(type, id, isVisible) {
+        try {
+            await fetch(`${API_URL}/${type}/${id}/visibility`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_visible: isVisible })
+            });
+            if (type === 'products') loadProducts();
+            if (type === 'categories') loadCategories();
+        } catch(e) {
+            console.error('Error toggling visibility:', e);
+            alert('Failed to update visibility');
+        }
+    }
+
+    async function deleteCategory(id) {
+        if(confirm('Delete this category?')) {
+            await fetch(`${API_URL}/categories/${id}`, { method: 'DELETE' });
+            loadCategories();
+            loadCategoriesForSelect();
+        }
+    }
+
+    // --- ORDERS ---
+    let allOrders = [];
+    let currentOrderFilter = 'current';
+
+    async function loadOrders() {
+        const res = await fetch(`${API_URL}/admin/orders`);
+        allOrders = await res.json();
+        if (!res.ok) { console.error(allOrders); return; }
+        renderOrders();
+    }
+
+    function setOrderFilter(filter) {
+        currentOrderFilter = filter;
+        document.getElementById('btn-filter-current').className = filter === 'current' ? 'flex-1 py-2 px-4 rounded-xl text-sm font-bold bg-primary text-white transition-colors' : 'flex-1 py-2 px-4 rounded-xl text-sm font-bold bg-surface text-text-muted hover:bg-surface-dim transition-colors';
+        document.getElementById('btn-filter-completed').className = filter === 'completed' ? 'flex-1 py-2 px-4 rounded-xl text-sm font-bold bg-primary text-white transition-colors' : 'flex-1 py-2 px-4 rounded-xl text-sm font-bold bg-surface text-text-muted hover:bg-surface-dim transition-colors';
+        document.getElementById('btn-filter-cancelled').className = filter === 'cancelled' ? 'flex-1 py-2 px-4 rounded-xl text-sm font-bold bg-primary text-white transition-colors' : 'flex-1 py-2 px-4 rounded-xl text-sm font-bold bg-surface text-text-muted hover:bg-surface-dim transition-colors';
+        renderOrders();
+    }
+
+    function renderOrders() {
+        const list = document.getElementById('orders-list');
+        const searchInput = document.getElementById('order-search');
+        const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        
+        const filteredOrders = allOrders.filter(o => {
+            if (searchTerm && !o.id.toString().includes(searchTerm)) {
+                return false;
+            }
+            if (currentOrderFilter === 'current') return ['pending', 'processing', 'on_the_way'].includes(o.status);
+            if (currentOrderFilter === 'completed') return o.status === 'completed';
+            if (currentOrderFilter === 'cancelled') return o.status === 'cancelled';
+            return true;
+        });
+
+        if (filteredOrders.length === 0) {
+            list.innerHTML = '<p class="text-center text-text-muted py-4">No orders found matching your criteria.</p>';
+            return;
+        }
+
+        list.innerHTML = filteredOrders.map(o => {
+            const data = JSON.parse(o.order_data);
+            const items = data.items.map(i => `${i.quantity}x ${i.name}`).join(', ');
+            const date = new Date(o.created_at).toLocaleString();
+            
+            let statusText = o.status;
+            let statusClass = 'bg-surface-dim text-text-muted';
+            if (o.status === 'pending') { statusText = 'Pending'; statusClass = 'bg-orange-100 text-orange-700'; }
+            if (o.status === 'processing') { statusText = 'Processing'; statusClass = 'bg-yellow-100 text-yellow-800'; }
+            if (o.status === 'on_the_way') { statusText = 'On the Way'; statusClass = 'bg-blue-100 text-blue-700'; }
+            if (o.status === 'completed') { statusText = 'Completed'; statusClass = 'bg-[#bcebd2] text-[#135c38]'; }
+            if (o.status === 'cancelled') { statusText = 'Cancelled'; statusClass = 'bg-red-100 text-red-700'; }
+
+            return `
+            <div class="bg-white p-5 rounded-3xl shadow-soft border border-surface-dim space-y-3">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-bold text-primary">Order #${o.id}</h4>
+                        <p class="text-xs text-text-muted">${date}</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">
+                        ${statusText}
+                    </span>
+                </div>
+                <div>
+                    <p class="text-sm text-text font-medium">${o.user_email}</p>
+                    ${data.customerDetails ? `<p class="text-xs text-text-muted">${data.customerDetails.firstName} ${data.customerDetails.lastName} | ${data.customerDetails.phone}</p>` : ''}
+                    ${data.address ? `
+                    <div class="mt-2 bg-primary/5 p-2 rounded-xl flex items-center justify-between border border-primary/20">
+                        <div class="flex-1">
+                            <p class="text-xs font-bold text-primary">${data.address.label || data.address.building || 'Address'}</p>
+                            <p class="text-[11px] text-text-muted mt-0.5 leading-tight">${data.address.building ? 'Bldg ' + data.address.building : ''}${data.address.floor ? ', Fl ' + data.address.floor : ''}${data.address.details ? ' - ' + data.address.details : ''}</p>
+                        </div>
+                        ${data.address.latitude && data.address.longitude ? `
+                        <a href="https://www.google.com/maps?q=${data.address.latitude},${data.address.longitude}" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm text-primary hover:bg-primary hover:text-white transition-colors border border-surface-dim ml-2 shrink-0" title="View on Map">
+                            <span class="material-symbols-outlined text-[18px]">map</span>
+                        </a>` : ''}
+                    </div>` : ''}
+                </div>
+                <div class="bg-surface-dim p-3 rounded-2xl">
+                    <p class="text-xs text-text-muted mb-1">Items:</p>
+                    <p class="text-sm text-text">${items}</p>
+                </div>
+                <div class="flex flex-col gap-2 pt-2 border-t border-surface-dim/50">
+                    <p class="font-bold text-text">Total: JOD ${o.total_price.toFixed(2)}</p>
+                    <div class="flex items-center gap-3 mt-2" id="status-dropdown-container-${o.id}">
+                        <div class="relative flex-1">
+                            <div class="relative cursor-pointer group" onclick="toggleOrderStatusDropdown(${o.id})">
+                                <input type="text" id="status-display-${o.id}" value="${statusText}" readonly class="w-full bg-surface border border-surface-dim rounded-xl pl-4 pr-10 py-2.5 text-sm cursor-pointer focus:ring-2 focus:ring-primary/20 text-text font-bold outline-none shadow-sm transition-all group-hover:border-primary/50">
+                                <input type="hidden" id="status-val-${o.id}" value="${o.status}">
+                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none transition-transform duration-300 text-[20px]" id="status-arrow-${o.id}">expand_more</span>
+                            </div>
+                            <ul id="status-list-${o.id}" class="absolute left-0 right-0 mt-2 z-50 bg-white rounded-xl shadow-xl border border-surface-dim overflow-hidden hidden transform origin-top transition-all">
+                                <li onclick="selectOrderStatus(${o.id}, 'pending', 'Pending')" class="px-4 py-3 hover:bg-primary/5 hover:text-primary cursor-pointer text-sm text-text font-bold transition-colors flex items-center justify-between group">
+                                    Pending
+                                    <span class="material-symbols-outlined text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">schedule</span>
+                                </li>
+                                <li onclick="selectOrderStatus(${o.id}, 'processing', 'Processing')" class="px-4 py-3 hover:bg-blue-50 hover:text-blue-700 cursor-pointer text-sm text-text font-bold transition-colors border-t border-surface-dim/50 flex items-center justify-between group">
+                                    Processing
+                                    <span class="material-symbols-outlined text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">local_shipping</span>
+                                </li>
+                                <li onclick="selectOrderStatus(${o.id}, 'on_the_way', 'On the Way')" class="px-4 py-3 hover:bg-purple-50 hover:text-purple-700 cursor-pointer text-sm text-text font-bold transition-colors border-t border-surface-dim/50 flex items-center justify-between group">
+                                    On the Way
+                                    <span class="material-symbols-outlined text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">two_wheeler</span>
+                                </li>
+                                <li onclick="selectOrderStatus(${o.id}, 'completed', 'Completed')" class="px-4 py-3 hover:bg-[#bcebd2]/30 hover:text-[#135c38] cursor-pointer text-sm text-text font-bold transition-colors border-t border-surface-dim/50 flex items-center justify-between group">
+                                    Completed
+                                    <span class="material-symbols-outlined text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">check_circle</span>
+                                </li>
+                                <li onclick="selectOrderStatus(${o.id}, 'cancelled', 'Cancelled')" class="px-4 py-3 hover:bg-red-50 hover:text-red-700 cursor-pointer text-sm text-red-500 font-bold transition-colors border-t border-surface-dim/50 flex items-center justify-between group">
+                                    Cancelled
+                                    <span class="material-symbols-outlined text-[18px] opacity-0 group-hover:opacity-100 transition-opacity">cancel</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <button onclick="changeOrderStatus(${o.id})" class="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all shadow-soft whitespace-nowrap flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[18px]">save</span>
+                            Update
+                        </button>
+                        <button onclick="deleteOrder(${o.id})" class="bg-red-50 text-red-500 px-3 py-2.5 rounded-xl hover:bg-red-100 hover:scale-105 active:scale-95 transition-all shadow-soft whitespace-nowrap flex items-center shrink-0" title="Delete Order">
+                            <span class="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
+
+    function toggleOrderStatusDropdown(id) {
+        document.querySelectorAll('[id^="status-list-"]').forEach(el => {
+            if(el.id !== `status-list-${id}`) el.classList.add('hidden');
+        });
+        document.querySelectorAll('[id^="status-arrow-"]').forEach(el => {
+            if(el.id !== `status-arrow-${id}`) el.classList.remove('rotate-180');
+        });
+        
+        document.getElementById(`status-list-${id}`).classList.toggle('hidden');
+        document.getElementById(`status-arrow-${id}`).classList.toggle('rotate-180');
+    }
+
+    function selectOrderStatus(id, val, text) {
+        document.getElementById(`status-val-${id}`).value = val;
+        document.getElementById(`status-display-${id}`).value = text;
+        document.getElementById(`status-list-${id}`).classList.add('hidden');
+        document.getElementById(`status-arrow-${id}`).classList.remove('rotate-180');
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if(!e.target.closest('[id^="status-dropdown-container-"]')) {
+            document.querySelectorAll('[id^="status-list-"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id^="status-arrow-"]').forEach(el => el.classList.remove('rotate-180'));
+        }
+    });
+
+    async function changeOrderStatus(id) {
+        const newStatus = document.getElementById(`status-val-${id}`).value;
+        if(confirm('Change order status?')) {
+            await fetch(`${API_URL}/admin/orders/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            loadOrders();
+        }
+    }
+
+    async function deleteOrder(id) {
+        if(confirm('Are you sure you want to completely delete this order? This action cannot be undone and will restore stock if the order was not already cancelled.')) {
+            try {
+                const res = await fetch(`${API_URL}/admin/orders/${id}`, {
+                    method: 'DELETE'
+                });
+                if(res.ok) {
+                    loadOrders();
+                } else {
+                    const data = await res.json();
+        if (!res.ok) { console.error(data); return; }
+                    alert('Error: ' + data.error);
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+    }
+
+    
+    // --- USERS ---
+    let allUsers = [];
+
+    async function loadUsers() {
+        const res = await fetch(`${API_URL}/admin/users`);
+        allUsers = await res.json();
+        if (!res.ok) { console.error(allUsers); return; }
+        const countEl = document.getElementById('users-total-count');
+        if (countEl) countEl.innerText = allUsers.length;
+        renderUsers(allUsers);
+    }
+
+    function filterUsers() {
+        const query = document.getElementById('user-search').value.toLowerCase();
+        const filtered = allUsers.filter(u => {
+            const name = ((u.firstName || '') + ' ' + (u.lastName || '')).toLowerCase();
+            const email = (u.email || '').toLowerCase();
+            const phone = (u.phone || '').toLowerCase();
+            return name.includes(query) || email.includes(query) || phone.includes(query);
+        });
+        renderUsers(filtered);
+    }
+
+    function renderUsers(usersToRender) {
+        const list = document.getElementById('users-list');
+
+        if (usersToRender.length === 0) {
+            list.innerHTML = '<p class="text-center text-text-muted py-4">No users found.</p>';
+            return;
+        }
+
+        list.innerHTML = usersToRender.map(u => `
+            <div class="bg-white p-5 rounded-3xl shadow-soft border border-surface-dim flex flex-col gap-3">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold text-text">${u.firstName || ''} ${u.lastName || ''} ${u.role === 'admin' ? '<span class="text-blue-500 text-xs font-bold px-1 bg-blue-50 rounded-md ml-1">ADMIN</span>' : ''}</h4>
+                        <p class="text-sm text-text-muted flex items-center gap-2">
+                            ${u.email}
+                            <span class="text-[9px] font-bold text-text-muted uppercase tracking-wider bg-surface-dim px-1.5 py-0.5 rounded-md border border-surface-dim/50">${u.provider}</span>
+                        </p>
+                        <p class="text-xs text-primary mt-1 font-bold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">public</span> ${u.country || 'Unknown'}
+                        </p>
+                    </div>
+                    <div class="bg-surface-dim p-2 rounded-full flex flex-col items-center justify-center shadow-sm shrink-0 w-16 h-16 bg-cover bg-center overflow-hidden relative"
+                         style="background-image: url('${u.profilePicture || (u.gender === 'female' ? 'female-avatar.jpg' : 'male-avatar.jpg')}');">
+                        ${!u.profilePicture && !u.gender ? `
+                        <span class="material-symbols-outlined text-text-muted text-2xl ${u.provider === 'google' ? 'text-green-600' : ''}">
+                            ${u.provider === 'google' ? 'account_circle' : 'person'}
+                        </span>
+                        ` : ''}
+                    </div>
+                </div>
+                <button onclick='viewUserDetails(${JSON.stringify(u).replace(/'/g, "&apos;")})' class="w-full bg-surface hover:bg-primary-light border border-primary/20 text-primary font-bold py-2.5 rounded-2xl text-sm transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">visibility</span> View Full Details
+                </button>
+            </div>
+        `).join('');
+    }
+
+    async function viewUserDetails(user) {
+        // Populate modal data
+        const initialEl = document.getElementById('modal-user-initial');
+        if (user.profilePicture) {
+            initialEl.parentElement.style.backgroundImage = `url('${user.profilePicture}')`;
+            initialEl.parentElement.classList.add('bg-cover', 'bg-center');
+            initialEl.style.display = 'none';
+        } else if (user.gender) {
+            const defaultAvatar = user.gender === 'female' ? 'female-avatar.jpg' : 'male-avatar.jpg';
+            initialEl.parentElement.style.backgroundImage = `url('${defaultAvatar}')`;
+            initialEl.parentElement.classList.add('bg-cover', 'bg-center');
+            initialEl.style.display = 'none';
+        } else {
+            initialEl.parentElement.style.backgroundImage = '';
+            initialEl.style.display = 'block';
+            initialEl.textContent = (user.firstName ? user.firstName[0] : (user.email ? user.email[0] : 'U')).toUpperCase();
+        }
+
+        document.getElementById('modal-user-name').textContent = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'No Name';
+        document.getElementById('modal-user-role').textContent = user.role.toUpperCase();
+        document.getElementById('modal-user-email').textContent = user.email;
+        document.getElementById('modal-user-phone').textContent = user.phone || 'Not provided';
+        document.getElementById('modal-user-country').textContent = user.country || 'Unknown';
+        document.getElementById('modal-user-gender').textContent = user.gender || 'Not provided';
+        
+        const ordersContainer = document.getElementById('modal-user-orders');
+        ordersContainer.innerHTML = '<p class="text-sm text-text-muted text-center py-4"><span class="material-symbols-outlined animate-spin text-primary">autorenew</span></p>';
+        
+        // Show modal
+        const modal = document.getElementById('user-details-modal');
+        const content = document.getElementById('user-modal-content');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            content.classList.remove('translate-y-full', 'sm:translate-y-8');
+        }, 10);
+
+        // Fetch Orders
+        try {
+            const res = await fetch(`${API_URL}/orders/${user.email}`);
+            const orders = await res.json();
+        if (!res.ok) { console.error(orders); return; }
+            
+            if (orders.length === 0) {
+                ordersContainer.innerHTML = '<p class="text-sm text-text-muted text-center py-4 bg-surface-dim rounded-2xl">No orders found.</p>';
+            } else {
+                ordersContainer.innerHTML = orders.map(o => {
+                    const data = JSON.parse(o.order_data);
+                    const itemsSummary = data.items.map(i => `${i.quantity}x ${i.name}`).join(', ');
+                    
+                    const fullItemsHtml = data.items.map(i => `
+                        <div class="flex justify-between text-xs py-1.5 border-b border-surface-dim/50 last:border-0">
+                            <span class="text-text">${i.quantity}x ${i.name}</span>
+                            <span class="font-bold text-primary">JOD ${(i.price * i.quantity).toFixed(2)}</span>
+                        </div>
+                    `).join('');
+
+                    const customerInfo = data.customerDetails ? `
+                        <div class="mt-3 pt-3 border-t border-surface-dim/50">
+                            <p class="text-xs text-text"><strong class="text-text-muted">Name:</strong> ${data.customerDetails.firstName} ${data.customerDetails.lastName}</p>
+                            <p class="text-xs text-text mt-1"><strong class="text-text-muted">Phone:</strong> +962 ${data.customerDetails.phone}</p>
+                        </div>
+                    ` : '';
+
+                    const date = new Date(o.created_at).toLocaleString();
+
+                    let statusText = o.status;
+                    let statusClass = 'text-text-muted';
+                    if (o.status === 'pending') { statusText = 'Pending'; statusClass = 'text-orange-600'; }
+                    if (o.status === 'processing') { statusText = 'Processing'; statusClass = 'text-yellow-600'; }
+                    if (o.status === 'on_the_way') { statusText = 'On the Way'; statusClass = 'text-blue-600'; }
+                    if (o.status === 'completed') { statusText = 'Completed'; statusClass = 'text-[#135c38]'; }
+                    if (o.status === 'cancelled') { statusText = 'Cancelled'; statusClass = 'text-red-600'; }
+
+                    return `
+                    <div class="bg-white p-4 rounded-2xl border border-surface-dim shadow-sm cursor-pointer hover:border-primary/30 transition-all group" onclick="this.querySelector('.order-full-details').classList.toggle('hidden'); this.querySelector('.order-summary').classList.toggle('hidden'); this.querySelector('.chevron-icon').classList.toggle('rotate-180')">
+                        <div class="flex justify-between items-start mb-1">
+                            <div>
+                                <span class="font-bold text-primary text-sm block">Order #${o.id}</span>
+                                <span class="text-xs text-text-muted">${date}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold ${statusClass}">${statusText}</span>
+                                <span class="material-symbols-outlined text-[20px] text-text-muted transition-transform duration-300 chevron-icon">expand_more</span>
+                            </div>
+                        </div>
+                        <p class="text-sm mt-1 mb-2 font-bold text-text">Total: JOD ${o.total_price.toFixed(2)}</p>
+                        
+                        <div class="order-summary">
+                            <p class="text-xs text-text-muted font-medium line-clamp-1">${itemsSummary}</p>
+                        </div>
+
+                        <div class="order-full-details hidden mt-3 pt-3 border-t border-surface-dim">
+                            <h5 class="text-xs font-bold text-text mb-2 uppercase tracking-wider">Order Items</h5>
+                            <div class="bg-surface-dim rounded-xl p-2 mb-2">
+                                ${fullItemsHtml}
+                            </div>
+                            ${customerInfo}
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+        } catch (e) {
+            ordersContainer.innerHTML = '<p class="text-sm text-red-500 text-center py-4">Failed to load orders.</p>';
+        }
+    }
+
+    function closeUserDetailsModal() {
+        const modal = document.getElementById('user-details-modal');
+        const content = document.getElementById('user-modal-content');
+        
+        modal.classList.add('opacity-0');
+        content.classList.add('translate-y-full', 'sm:translate-y-8');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+
+    // Init
+    loadProducts();
+</script>
+<!-- Admin Bottom Navigation -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm bg-white/80 backdrop-blur-xl border border-white/40 shadow-soft rounded-full px-4 py-3 z-50 flex justify-between items-center">
+    <button onclick="switchTab('products')" id="nav-products" class="flex flex-col items-center gap-1 text-primary transition-colors">
+        <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+        <span class="text-[10px] font-medium tracking-wide">Products</span>
+    </button>
+    <button onclick="switchTab('categories')" id="nav-categories" class="flex flex-col items-center gap-1 text-text-muted hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 0;">category</span>
+        <span class="text-[10px] font-medium tracking-wide">Categories</span>
+    </button>
+    <button onclick="switchTab('orders')" id="nav-orders" class="flex flex-col items-center gap-1 text-text-muted hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 0;">list_alt</span>
+        <span class="text-[10px] font-medium tracking-wide">Orders</span>
+    </button>
+    <button onclick="switchTab('users')" id="nav-users" class="flex flex-col items-center gap-1 text-text-muted hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 0;">group</span>
+        <span class="text-[10px] font-medium tracking-wide">Users</span>
+    </button>
+    <a href="profile.html" class="flex flex-col items-center gap-1 text-text-muted hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 0;">person</span>
+        <span class="text-[10px] font-medium tracking-wide">Profile</span>
+    </a>
+</nav>
+
+</body>
+</html>

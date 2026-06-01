@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=400, user-scalable=no">
+<title>Edit Profile - Ghiras Alkhier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+<script>
+    if (!localStorage.getItem('currentUser') || !localStorage.getItem('token')) {
+        window.location.href = 'index.html';
+    }
+</script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                },
+                colors: {
+                    primary: '#135c38',
+                    'primary-light': '#bcebd2',
+                    surface: '#fbf9f8',
+                    'surface-dim': '#f5f3f3',
+                    text: '#3d4943',
+                    'text-muted': '#6b7a73',
+                },
+                borderRadius: {
+                    '4xl': '2rem',
+                }
+            }
+        }
+    }
+</script>
+<style type="text/tailwindcss">
+    @layer utilities {
+        .shadow-soft { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .shadow-ambient { box-shadow: 0 12px 40px rgba(19, 92, 56, 0.08); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    }
+    body {
+        background-color: theme('colors.surface');
+        color: theme('colors.text');
+    }
+</style>
+<script src="purify.min.js"></script>
+    <script src="loader.js"></script>
+</head>
+<body class="antialiased font-sans flex flex-col h-full">
+
+<!-- Header (Floating) -->
+<header class="fixed top-0 w-full z-40 px-6 py-4 flex justify-between items-center pointer-events-none max-w-xl left-1/2 -translate-x-1/2">
+    <button class="pointer-events-auto h-12 w-12 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-md text-primary shadow-soft hover:bg-white transition-colors" onclick="window.location.href='profile.html'">
+        <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <div class="pointer-events-auto font-bold text-lg text-primary bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-soft">
+        Edit Profile
+    </div>
+    <div class="w-12 h-12"></div> <!-- Spacer for balance -->
+</header>
+
+<main class="w-full max-w-xl mx-auto pt-24 px-6 pb-56">
+    
+    <form id="edit-profile-form" class="space-y-6">
+        
+        <!-- Profile Picture Upload -->
+        <div class="flex flex-col items-center gap-3 mb-4 mt-2">
+            <div class="relative group cursor-pointer w-28 h-28">
+                <div id="edit-profile-picture-preview" class="h-28 w-28 rounded-full border-4 border-white bg-surface-dim bg-cover bg-center shadow-soft" style="background-image: url('male-avatar.jpg');"></div>
+                <div class="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white border-2 border-white shadow-sm z-20 pointer-events-none transition-transform group-hover:scale-110">
+                    <span class="material-symbols-outlined text-[14px]">add_a_photo</span>
+                </div>
+                <input type="file" id="edit-profile-picture-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-[0] z-10" />
+                <button type="button" onclick="deleteProfilePhoto(event)" id="delete-photo-btn" class="absolute top-0 left-0 flex h-8 w-8 items-center justify-center rounded-full bg-white text-red-500 hover:text-red-600 hover:bg-red-50 border-2 border-white shadow-sm z-20 transition-transform hover:scale-110 hidden">
+                    <span class="material-symbols-outlined text-[16px] font-bold">delete</span>
+                </button>
+            </div>
+            <p class="text-xs text-text-muted font-medium">Tap to change picture</p>
+        </div>
+
+        <!-- Name Field -->
+        <div>
+            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 pl-2">Full Name</label>
+            <div class="relative group">
+                <span class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-text-muted group-focus-within:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">person</span>
+                </span>
+                <input id="edit-name" type="text" required class="w-full py-4 pl-12 pr-5 bg-white border-none rounded-[2rem] text-sm text-text font-bold focus:ring-2 focus:ring-primary/20 shadow-sm transition-all" placeholder="Your full name" />
+            </div>
+        </div>
+
+        <!-- Email Field (Readonly) -->
+        <div>
+            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 pl-2">Email Address</label>
+            <div class="relative group opacity-70">
+                <span class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-text-muted transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">mail</span>
+                </span>
+                <input id="edit-email" type="email" readonly class="w-full py-4 pl-12 pr-5 bg-white border-none rounded-[2rem] text-sm text-text font-bold shadow-sm cursor-not-allowed" placeholder="your.email@example.com" />
+            </div>
+        </div>
+
+        <!-- Phone Field -->
+        <div>
+            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 pl-2">Phone Number</label>
+            <div class="relative group">
+                <span class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-text-muted group-focus-within:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">phone</span>
+                </span>
+                <span class="absolute inset-y-0 left-[3rem] flex items-center pointer-events-none text-text-muted group-focus-within:text-primary font-bold text-sm transition-colors">
+                    +962
+                </span>
+                <input id="edit-phone" type="tel" required style="padding-left: 5.5rem;" class="w-full py-4 pr-5 bg-white border-none rounded-[2rem] text-sm text-text font-bold focus:ring-2 focus:ring-primary/20 shadow-sm transition-all" placeholder="790000000" oninput="this.value = this.value.replace(/[^0-9]/g, ''); if(this.value.startsWith('0')) this.value = this.value.substring(1); this.maxLength = 9;" />
+            </div>
+            <p id="edit-error" class="text-red-500 text-xs mt-2 pl-2 hidden font-medium"></p>
+        </div>
+
+        <!-- Gender Field -->
+        <div id="gender-dropdown-container">
+            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 pl-2">Gender</label>
+            <div class="relative group">
+                <span class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-text-muted group-[.is-open]:text-primary transition-colors z-20">
+                    <span id="main-gender-icon" class="material-symbols-outlined text-[20px]">wc</span>
+                </span>
+                <button type="button" id="gender-btn" onclick="toggleGenderDropdown()" class="w-full py-4 pl-12 pr-5 text-left bg-white border-none rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm text-text font-bold flex items-center justify-between shadow-sm relative z-10">
+                    <span id="gender-selected-text">Select</span>
+                    <span class="material-symbols-outlined text-[20px] text-text-muted transition-transform duration-300" id="gender-icon">expand_more</span>
+                </button>
+                <div id="gender-options" class="absolute z-50 w-full mt-2 bg-white rounded-3xl shadow-ambient hidden overflow-hidden origin-top scale-95 opacity-0 transition-all duration-200 border border-surface-dim">
+                    <button type="button" onclick="selectGender('male', 'Male')" class="w-full text-left px-6 py-4 text-sm font-bold text-text hover:bg-surface-dim transition-colors border-b border-surface-dim flex items-center justify-between group/opt">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-[20px] text-text-muted group-hover/opt:text-primary transition-colors">male</span>
+                            Male
+                        </div>
+                        <span class="material-symbols-outlined text-[20px] opacity-0 group-hover/opt:opacity-100 text-primary transition-opacity font-bold">check</span>
+                    </button>
+                    <button type="button" onclick="selectGender('female', 'Female')" class="w-full text-left px-6 py-4 text-sm font-bold text-text hover:bg-surface-dim transition-colors flex items-center justify-between group/opt">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-[20px] text-text-muted group-hover/opt:text-primary transition-colors">female</span>
+                            Female
+                        </div>
+                        <span class="material-symbols-outlined text-[20px] opacity-0 group-hover/opt:opacity-100 text-primary transition-opacity font-bold">check</span>
+                    </button>
+                </div>
+                <input type="hidden" id="edit-gender" value="male">
+            </div>
+        </div>
+        <!-- Set Password Field (For Google Users) -->
+        <div id="set-password-container" class="hidden">
+            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 pl-2">Set Account Password</label>
+            <div class="relative group">
+                <span class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-text-muted group-focus-within:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">lock</span>
+                </span>
+                <input id="edit-password" type="password" class="w-full py-4 pl-12 pr-5 bg-white border-none rounded-[2rem] text-sm text-text font-bold focus:ring-2 focus:ring-primary/20 shadow-sm transition-all" placeholder="Enter new password (optional)" />
+            </div>
+            <p class="text-[10px] text-text-muted mt-2 pl-2 leading-tight font-medium">Since you signed in with Google, you can set a password to also log in using your email directly.</p>
+        </div>
+    </form>
+
+</main>
+
+<!-- Sticky Bottom Save Button -->
+<div class="fixed bottom-24 w-[calc(100%-2rem)] max-w-[calc(448px-2rem)] rounded-4xl w-full left-1/2 -translate-x-1/2 max-w-xl z-30 px-6 py-5 bg-white/90 backdrop-blur-md border-t border-surface-dim  shadow-ambient">
+    <button type="button" onclick="saveProfileChanges()" class="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-full font-bold text-base shadow-ambient flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+        <span>Save Changes</span>
+        <span class="material-symbols-outlined">save</span>
+    </button>
+</div>
+
+<!-- Delete Photo Confirmation Modal -->
+<div id="delete-photo-modal" class="fixed inset-0 z-50 hidden">
+    <div id="delete-photo-backdrop" class="absolute inset-0 bg-[#3d4943]/40 backdrop-blur-sm opacity-0 transition-opacity duration-300" onclick="closeDeletePhotoModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-6 max-w-xl mx-auto">
+        <div id="delete-photo-panel" class="w-full bg-white rounded-[2rem] p-6 shadow-ambient transform translate-y-8 scale-95 opacity-0 transition-all duration-300 flex flex-col items-center border border-surface-dim">
+            <div class="h-16 w-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                <span class="material-symbols-outlined text-3xl">delete</span>
+            </div>
+            <h3 class="text-xl font-bold text-text mb-2 text-center">Remove Photo?</h3>
+            <p class="text-sm text-text-muted text-center mb-6 leading-relaxed">Are you sure you want to remove your custom profile photo and revert to the default avatar?</p>
+            
+            <div class="flex gap-3 w-full mt-2">
+                <button class="flex-1 h-12 rounded-full font-bold text-text bg-surface-dim hover:bg-[#e8ebe6] transition-colors" onclick="closeDeletePhotoModal()">Cancel</button>
+                <button class="flex-1 h-12 rounded-full font-bold text-white bg-red-500 hover:bg-red-600 shadow-sm transition-all active:scale-[0.98] flex items-center justify-center" onclick="confirmDeleteProfilePhoto()">Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let originalEmail = '';
+    let hasCustomPhoto = false;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) return;
+        
+        // Initial population from local storage
+        document.getElementById('edit-name').value = currentUser.name || '';
+        document.getElementById('edit-email').value = currentUser.email || '';
+        document.getElementById('edit-phone').value = currentUser.phone || '';
+        
+        if (currentUser.gender) {
+            selectGender(currentUser.gender, currentUser.gender.charAt(0).toUpperCase() + currentUser.gender.slice(1));
+        } else {
+            document.getElementById('edit-gender').value = '';
+            document.getElementById('gender-selected-text').textContent = 'Select';
+        }
+
+        // Load existing profile picture
+        const picPreview = document.getElementById('edit-profile-picture-preview');
+        if (currentUser.profilePicture) {
+            picPreview.style.backgroundImage = `url('${currentUser.profilePicture}')`;
+            hasCustomPhoto = true;
+            document.getElementById('delete-photo-btn').classList.remove('hidden');
+        } else {
+            const gender = currentUser.gender || 'male';
+            const defaultAvatar = gender === 'female' ? 'female-avatar.jpg' : 'male-avatar.jpg';
+            picPreview.style.backgroundImage = `url('${defaultAvatar}')`;
+        }
+        
+        originalEmail = currentUser.email;
+
+        // File input change handler - read selected image
+        document.getElementById('edit-profile-picture-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const picPreview = document.getElementById('edit-profile-picture-preview');
+                picPreview.style.backgroundImage = `url('${event.target.result}')`;
+                hasCustomPhoto = true;
+                document.getElementById('delete-photo-btn').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/profile/${currentUser.email}`);
+            const data = await res.json();
+        if (!res.ok) { console.error(data); return; }
+            if (res.ok && data) {
+                const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ');
+                if (fullName) document.getElementById('edit-name').value = fullName;
+                if (data.phone) document.getElementById('edit-phone').value = data.phone;
+                if (data.gender) {
+                    selectGender(data.gender, data.gender.charAt(0).toUpperCase() + data.gender.slice(1));
+                }
+                // Update profile pic from server if user has one and we don't have local one
+                if (data.profilePicture && !hasCustomPhoto) {
+                    picPreview.style.backgroundImage = `url('${data.profilePicture}')`;
+                    hasCustomPhoto = true;
+                    document.getElementById('delete-photo-btn').classList.remove('hidden');
+                }
+
+                if (data.provider === 'google') {
+                    document.getElementById('set-password-container').classList.remove('hidden');
+                }
+            }
+        } catch(err) {
+            console.error("Error fetching profile", err);
+        }
+    });
+
+    async function saveProfileChanges() {
+        const nameInput = document.getElementById('edit-name').value.trim();
+        const emailInput = document.getElementById('edit-email').value.trim();
+        const phoneInputRaw = document.getElementById('edit-phone').value.trim();
+        const errorElement = document.getElementById('edit-error');
+
+        if (!nameInput || !emailInput || !phoneInputRaw) {
+            errorElement.textContent = "All fields are required.";
+            errorElement.classList.remove('hidden');
+            return;
+        }
+
+        if (phoneInputRaw.length < 9) {
+            errorElement.textContent = "Phone number is too short.";
+            errorElement.classList.remove('hidden');
+            return;
+        }
+
+        errorElement.classList.add('hidden');
+        const formattedPhone = phoneInputRaw;
+
+        const genderInput = document.getElementById('edit-gender').value;
+        const picPreviewElement = document.getElementById('edit-profile-picture-preview');
+        let profilePicSrc = '';
+
+        if (hasCustomPhoto) {
+            const bgImage = picPreviewElement.style.backgroundImage;
+            if (bgImage && bgImage !== 'none' && !bgImage.includes('avatar.jpg')) {
+                const urlMatch = bgImage.match(/url\(['"]?(.*?)['"]?\)/);
+                if (urlMatch && urlMatch[1]) {
+                    profilePicSrc = urlMatch[1];
+                }
+            }
+        } else {
+            profilePicSrc = "";
+        }
+
+        let users = JSON.parse(localStorage.getItem('users') || '[]');
+
+        if (emailInput !== originalEmail && users.some(u => u.email === emailInput)) {
+            errorElement.textContent = "This email is already in use by another account.";
+            errorElement.classList.remove('hidden');
+            return;
+        }
+
+        const userIndex = users.findIndex(u => u.email === originalEmail);
+        if (userIndex !== -1) {
+            users[userIndex].name = nameInput;
+            users[userIndex].email = emailInput;
+            users[userIndex].phone = formattedPhone;
+            users[userIndex].gender = genderInput;
+            users[userIndex].profilePicture = profilePicSrc; 
+
+            if (users[userIndex].firstName) {
+                const nameParts = nameInput.split(' ');
+                users[userIndex].firstName = nameParts[0] || '';
+                users[userIndex].lastName = nameParts.slice(1).join(' ') || '';
+            }
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser) {
+            currentUser.name = nameInput;
+            currentUser.email = emailInput; 
+            currentUser.phone = formattedPhone;
+            currentUser.gender = genderInput;
+            currentUser.profilePicture = profilePicSrc;
+
+            if (currentUser.firstName || true) { 
+                const nameParts = nameInput.split(' ');
+                currentUser.firstName = nameParts[0] || '';
+                currentUser.lastName = nameParts.slice(1).join(' ') || '';
+            }
+
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            
+            // Send update to server
+            try {
+                console.log('Saving to server:', { firstName: currentUser.firstName, lastName: currentUser.lastName, phone: currentUser.phone, gender: currentUser.gender, profilePicture: currentUser.profilePicture });
+                const response = await fetch(`http://localhost:3000/api/profile/${originalEmail}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        firstName: currentUser.firstName,
+                        lastName: currentUser.lastName,
+                        phone: currentUser.phone,
+                        gender: currentUser.gender,
+                        profilePicture: currentUser.profilePicture
+                    })
+                });
+                const result = await response.json();
+        if (!response.ok) { console.error(result); return; }
+                console.log('Server response:', result);
+
+                // Check if password was entered
+                const passwordInput = document.getElementById('edit-password');
+                if (passwordInput && !document.getElementById('set-password-container').classList.contains('hidden')) {
+                    const passVal = passwordInput.value.trim();
+                    if (passVal.length >= 6) {
+                        await fetch(`http://localhost:3000/api/profile/${originalEmail}/password`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ password: passVal })
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error("Error saving to server", e);
+            }
+        }
+
+        window.location.href = 'profile.html';
+    }
+
+    // Modal & Deletion Logic
+    function deleteProfilePhoto(event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        openDeletePhotoModal();
+    }
+
+    function openDeletePhotoModal() {
+        const modal = document.getElementById('delete-photo-modal');
+        const backdrop = document.getElementById('delete-photo-backdrop');
+        const panel = document.getElementById('delete-photo-panel');
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('translate-y-8', 'scale-95', 'opacity-0');
+        }, 10);
+    }
+
+    function closeDeletePhotoModal() {
+        const modal = document.getElementById('delete-photo-modal');
+        const backdrop = document.getElementById('delete-photo-backdrop');
+        const panel = document.getElementById('delete-photo-panel');
+
+        backdrop.classList.add('opacity-0');
+        panel.classList.add('translate-y-8', 'scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function confirmDeleteProfilePhoto() {
+        hasCustomPhoto = false;
+        document.getElementById('edit-profile-picture-input').value = ""; 
+        document.getElementById('delete-photo-btn').classList.add('hidden'); 
+
+        const currentGender = document.getElementById('edit-gender').value;
+        const picPreview = document.getElementById('edit-profile-picture-preview');
+        const defaultAvatar = currentGender === 'female' ? 'female-avatar.jpg' : 'male-avatar.jpg';
+        picPreview.style.backgroundImage = `url('${defaultAvatar}')`;
+
+        closeDeletePhotoModal();
+    }
+
+    // Dropdown Logic
+    function toggleGenderDropdown() {
+        const container = document.getElementById('gender-dropdown-container');
+        const options = document.getElementById('gender-options');
+        const icon = document.getElementById('gender-icon');
+        const group = container.querySelector('.group');
+
+        const isOpen = !options.classList.contains('hidden');
+
+        if (isOpen) {
+            options.classList.remove('scale-100', 'opacity-100');
+            options.classList.add('scale-95', 'opacity-0');
+            icon.style.transform = 'rotate(0deg)';
+            group.classList.remove('is-open');
+
+            setTimeout(() => {
+                options.classList.add('hidden');
+            }, 200);
+        } else {
+            options.classList.remove('hidden');
+            options.offsetHeight;
+            options.classList.remove('scale-95', 'opacity-0');
+            options.classList.add('scale-100', 'opacity-100');
+            icon.style.transform = 'rotate(180deg)';
+            group.classList.add('is-open');
+        }
+    }
+
+    function selectGender(value, text) {
+        document.getElementById('edit-gender').value = value;
+        document.getElementById('gender-selected-text').textContent = text;
+        
+        const mainIcon = document.getElementById('main-gender-icon');
+        if (value === 'male') {
+            mainIcon.textContent = 'male';
+        } else if (value === 'female') {
+            mainIcon.textContent = 'female';
+        } else {
+            mainIcon.textContent = 'wc';
+        }
+        
+        const picPreview = document.getElementById('edit-profile-picture-preview');
+        const currentBg = picPreview.style.backgroundImage || '';
+
+        if (!hasCustomPhoto && (currentBg.includes('male-avatar.jpg') || currentBg.includes('female-avatar.jpg') || currentBg === '')) {
+            const newAvatar = value === 'female' ? 'female-avatar.jpg' : 'male-avatar.jpg';
+            picPreview.style.backgroundImage = `url('${newAvatar}')`;
+        }
+
+        toggleGenderDropdown();
+    }
+
+    document.addEventListener('click', (e) => {
+        const container = document.getElementById('gender-dropdown-container');
+        const options = document.getElementById('gender-options');
+
+        if (container && options && !container.contains(e.target) && !options.classList.contains('hidden')) {
+            toggleGenderDropdown();
+        }
+    });
+</script>
+
+
+<!-- Cart Modal -->
+<div id="cart-modal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div id="cart-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="toggleCart()"></div>
+
+    <!-- Modal Panel -->
+    <div id="cart-panel" class="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto bg-[#fbf9f8] rounded-t-4xl shadow-[0_-12px_40px_rgba(19,92,56,0.12)] transform transition-transform duration-300 ease-out translate-y-full top-[15%] flex flex-col border border-white/50">
+        <!-- Handle for dragging (visual cue) -->
+        <div class="w-full flex justify-center pt-4 pb-2 cursor-pointer" onclick="toggleCart()">
+            <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+        </div>
+
+        <!-- Header -->
+        <div class="px-6 py-4 flex items-center justify-between border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-[#135c38]">Your Cart</h2>
+            <button class="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full text-gray-700 hover:bg-[#135c38] hover:text-white transition-colors" onclick="toggleCart()">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6">
+            <!-- Cart Items List -->
+            <div id="cart-items-container" class="space-y-4">
+                <!-- Items will be rendered here by cart.js -->
+            </div>
+            
+            <!-- Promo Code -->
+            <div class="pt-2">
+                <div class="bg-white p-2 pr-2 rounded-full flex items-center border border-gray-200 focus-within:ring-2 focus-within:ring-[#135c38]/20 focus-within:border-[#135c38] transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-gray-400 ml-3">sell</span>
+                    <input class="bg-transparent border-none text-sm w-full focus:ring-0 text-gray-800 placeholder-gray-400 ml-2 outline-none" placeholder="Promo Code" type="text" />
+                    <button class="bg-[#135c38] text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-[#135c38]/90 transition-colors ml-2">Apply</button>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 space-y-3 mb-6">
+                <div class="flex justify-between items-center text-sm text-gray-500">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal" class="font-medium text-gray-800">JOD 0.00</span>
+                </div>
+                <div class="h-px bg-gray-200 my-2"></div>
+                <div class="flex justify-between items-center text-base">
+                    <span class="font-semibold text-[#135c38]">Total</span>
+                    <span id="cart-total" class="font-bold text-lg text-[#135c38]">JOD 0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Button Area -->
+        <div class="p-6 border-t border-gray-200 bg-[#fbf9f8]/90 backdrop-blur-md pb-8">
+            <button class="w-full min-h-[56px] bg-[#135c38] text-white text-base font-medium rounded-full shadow-soft hover:bg-[#135c38]/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" onclick="window.location.href='checkout.html'">
+                Proceed to Checkout
+                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm bg-white/80 backdrop-blur-xl border border-white/40 shadow-ambient rounded-full px-6 py-3 z-50 flex justify-between items-center">
+    <a href="home.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" >home</span>
+        <span class="text-[10px] font-medium tracking-wide">Home</span>
+    </a>
+    <a href="product.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" >grid_view</span>
+        <span class="text-[10px] font-medium tracking-wide">Shop</span>
+    </a>
+    <button onclick="toggleCart()" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors relative">
+        <span class="material-symbols-outlined text-[24px]" >shopping_cart</span>
+        <span class="text-[10px] font-medium tracking-wide">Cart</span>
+        <span class="cart-badge absolute -top-1 -right-2 bg-[#f8deb1] text-[#a66a1a] text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white hidden">0</span>
+    </button>
+    <a href="profile.html" class="flex flex-col items-center gap-1 text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">person</span>
+        <span class="text-[10px] font-medium tracking-wide">Profile</span>
+    </a>
+</nav>
+
+<script src="cart.js"></script>
+</body>
+</html>

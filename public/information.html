@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=400, user-scalable=no">
+<title>My Information - Ghiras Alkhier</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+<script>
+    if (!localStorage.getItem('currentUser') || !localStorage.getItem('token')) {
+        window.location.href = 'index.html';
+    }
+</script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                },
+                colors: {
+                    primary: '#135c38',
+                    'primary-light': '#bcebd2',
+                    surface: '#fbf9f8',
+                    'surface-dim': '#f5f3f3',
+                    text: '#3d4943',
+                    'text-muted': '#6b7a73',
+                },
+                borderRadius: {
+                    '4xl': '2rem',
+                }
+            }
+        }
+    }
+</script>
+<style type="text/tailwindcss">
+    @layer utilities {
+        .shadow-soft { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .shadow-ambient { box-shadow: 0 12px 40px rgba(19, 92, 56, 0.08); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    }
+    body {
+        background-color: theme('colors.surface');
+        color: theme('colors.text');
+    }
+</style>
+<script src="purify.min.js"></script>
+    <script src="loader.js"></script>
+</head>
+<body class="antialiased font-sans flex flex-col h-full">
+
+<!-- Header (Floating) -->
+<header class="fixed top-0 w-full z-40 px-6 py-4 flex justify-between items-center pointer-events-none max-w-xl left-1/2 -translate-x-1/2">
+    <button class="pointer-events-auto h-12 w-12 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-md text-primary shadow-soft hover:bg-white transition-colors" onclick="window.location.href='profile.html'">
+        <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <div class="pointer-events-auto font-bold text-lg text-primary bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-soft">
+        My Information
+    </div>
+    <div class="w-12 h-12"></div> <!-- Spacer for balance -->
+</header>
+
+<main class="w-full max-w-xl mx-auto pt-24 px-6 pb-28">
+    <p class="text-text-muted text-sm mb-6 pl-2 font-medium">Here are your current account details.</p>
+
+    <div class="flex flex-col gap-5">
+        <!-- Name Field -->
+        <div>
+            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 pl-2">Full Name</label>
+            <div class="relative group opacity-80">
+                <span class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-primary">
+                    <span class="material-symbols-outlined text-[20px]">person</span>
+                </span>
+                <input id="info-name" type="text" readonly class="w-full py-4 pl-12 pr-5 bg-white border-none rounded-[2rem] text-sm text-text font-bold shadow-sm" value="Loading..." />
+            </div>
+        </div>
+
+        <!-- Email Field -->
+        <div>
+            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 pl-2">Email Address</label>
+            <div class="relative group opacity-80">
+                <span class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-primary">
+                    <span class="material-symbols-outlined text-[20px]">mail</span>
+                </span>
+                <input id="info-email" type="email" readonly class="w-full py-4 pl-12 pr-5 bg-white border-none rounded-[2rem] text-sm text-text font-bold shadow-sm" value="Loading..." />
+            </div>
+        </div>
+
+        <!-- Phone Field -->
+        <div>
+            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 pl-2">Phone Number</label>
+            <div class="relative group opacity-80">
+                <span class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-primary">
+                    <span class="material-symbols-outlined text-[20px]">phone</span>
+                </span>
+                <span class="absolute inset-y-0 left-[3rem] flex items-center pointer-events-none text-primary font-bold text-sm">
+                    +962
+                </span>
+                <input id="info-phone" type="tel" readonly style="padding-left: 5.5rem;" class="w-full py-4 pr-5 bg-white border-none rounded-[2rem] text-sm text-text font-bold shadow-sm" value="Loading..." />
+            </div>
+        </div>
+
+        <!-- Gender Field -->
+        <div>
+            <label class="block text-[11px] font-bold text-text-muted uppercase tracking-wider mb-2 pl-2">Gender</label>
+            <div class="relative group opacity-80">
+                <span class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-primary">
+                    <span id="info-gender-icon" class="material-symbols-outlined text-[20px]">person</span>
+                </span>
+                <div class="w-full py-4 pl-12 pr-5 bg-white border-none rounded-[2rem] text-sm text-text font-bold shadow-sm flex items-center">
+                    <span id="info-gender-text" class="capitalize">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser) {
+            let fullName = currentUser.name || '';
+            if (currentUser.firstName && currentUser.lastName) {
+                fullName = `${currentUser.firstName} ${currentUser.lastName}`;
+            }
+
+            document.getElementById('info-name').value = fullName;
+            document.getElementById('info-email').value = currentUser.email || '';
+            document.getElementById('info-phone').value = currentUser.phone ? currentUser.phone.replace('+962', '').trim().replace(/^0/, '') : '';
+
+            const genderVal = currentUser.gender || 'Not specified';
+            document.getElementById('info-gender-text').textContent = genderVal;
+
+            const iconEl = document.getElementById('info-gender-icon');
+            if (genderVal.toLowerCase() === 'male') {
+                iconEl.textContent = 'male';
+            } else if (genderVal.toLowerCase() === 'female') {
+                iconEl.textContent = 'female';
+            } else {
+                iconEl.textContent = 'person';
+            }
+        }
+    });
+</script>
+
+
+<!-- Cart Modal -->
+<div id="cart-modal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div id="cart-backdrop" class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="toggleCart()"></div>
+
+    <!-- Modal Panel -->
+    <div id="cart-panel" class="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto bg-[#fbf9f8] rounded-t-4xl shadow-[0_-12px_40px_rgba(19,92,56,0.12)] transform transition-transform duration-300 ease-out translate-y-full top-[15%] flex flex-col border border-white/50">
+        <!-- Handle for dragging (visual cue) -->
+        <div class="w-full flex justify-center pt-4 pb-2 cursor-pointer" onclick="toggleCart()">
+            <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+        </div>
+
+        <!-- Header -->
+        <div class="px-6 py-4 flex items-center justify-between border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-[#135c38]">Your Cart</h2>
+            <button class="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full text-gray-700 hover:bg-[#135c38] hover:text-white transition-colors" onclick="toggleCart()">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6">
+            <!-- Cart Items List -->
+            <div id="cart-items-container" class="space-y-4">
+                <!-- Items will be rendered here by cart.js -->
+            </div>
+            
+            <!-- Promo Code -->
+            <div class="pt-2">
+                <div class="bg-white p-2 pr-2 rounded-full flex items-center border border-gray-200 focus-within:ring-2 focus-within:ring-[#135c38]/20 focus-within:border-[#135c38] transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-gray-400 ml-3">sell</span>
+                    <input class="bg-transparent border-none text-sm w-full focus:ring-0 text-gray-800 placeholder-gray-400 ml-2 outline-none" placeholder="Promo Code" type="text" />
+                    <button class="bg-[#135c38] text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-[#135c38]/90 transition-colors ml-2">Apply</button>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-200 space-y-3 mb-6">
+                <div class="flex justify-between items-center text-sm text-gray-500">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal" class="font-medium text-gray-800">JOD 0.00</span>
+                </div>
+                <div class="h-px bg-gray-200 my-2"></div>
+                <div class="flex justify-between items-center text-base">
+                    <span class="font-semibold text-[#135c38]">Total</span>
+                    <span id="cart-total" class="font-bold text-lg text-[#135c38]">JOD 0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Button Area -->
+        <div class="p-6 border-t border-gray-200 bg-[#fbf9f8]/90 backdrop-blur-md pb-8">
+            <button class="w-full min-h-[56px] bg-[#135c38] text-white text-base font-medium rounded-full shadow-soft hover:bg-[#135c38]/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" onclick="window.location.href='checkout.html'">
+                Proceed to Checkout
+                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm bg-white/80 backdrop-blur-xl border border-white/40 shadow-ambient rounded-full px-6 py-3 z-50 flex justify-between items-center">
+    <a href="home.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" >home</span>
+        <span class="text-[10px] font-medium tracking-wide">Home</span>
+    </a>
+    <a href="product.html" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" >grid_view</span>
+        <span class="text-[10px] font-medium tracking-wide">Shop</span>
+    </a>
+    <button onclick="toggleCart()" class="flex flex-col items-center gap-1 text-gray-500 hover:text-[#135c38] transition-colors relative">
+        <span class="material-symbols-outlined text-[24px]" >shopping_cart</span>
+        <span class="text-[10px] font-medium tracking-wide">Cart</span>
+        <span class="cart-badge absolute -top-1 -right-2 bg-[#f8deb1] text-[#a66a1a] text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-white hidden">0</span>
+    </button>
+    <a href="profile.html" class="flex flex-col items-center gap-1 text-[#135c38] transition-colors">
+        <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">person</span>
+        <span class="text-[10px] font-medium tracking-wide">Profile</span>
+    </a>
+</nav>
+
+<script src="cart.js"></script>
+</body>
+</html>
