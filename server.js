@@ -1,6 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
+const sqlite3 = require('./sqlite3-pg.js').verbose();
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
@@ -17,9 +18,14 @@ const GOOGLE_CLIENT_ID = '243818682762-0gidrn9ft8vc5aff5fm3eognstfr4bdb.apps.goo
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // Configure multer storage
+const uploadDir = 'uploads/';
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir);
+}
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/');
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));

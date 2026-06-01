@@ -22,7 +22,7 @@ const Cart = {
         try {
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
             if (currentUser && currentUser.email) {
-                fetch(`http://localhost:3000/api/cart/${currentUser.email}`, {
+                fetch(`/api/cart/${currentUser.email}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ items: items })

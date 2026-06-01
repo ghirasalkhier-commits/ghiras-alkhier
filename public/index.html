@@ -431,7 +431,7 @@
             try {
                 let country = await getCountry();
 
-                const res = await fetch('http://localhost:3000/api/auth/google', {
+                const res = await fetch('/api/auth/google', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token: response.credential, country: country })
@@ -454,7 +454,7 @@
                     role: userData.role,
                     profilePicture: userData.profilePicture
                 }));
-                const cartRes = await fetch(`http://localhost:3000/api/cart/${userData.email}`);
+                const cartRes = await fetch(`/api/cart/${userData.email}`);
                 if (cartRes.ok) {
                     const cartItems = await cartRes.json();
                     localStorage.setItem(`ghiras_cart_${userData.email}`, JSON.stringify(cartItems));
@@ -605,7 +605,7 @@
                 setTimeout(() => { overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); }, 10);
 
                 // First check if email already exists
-                fetch('http://localhost:3000/api/auth/check', {
+                fetch('/api/auth/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: emailInput })
@@ -673,7 +673,7 @@
                 overlay.classList.remove('hidden');
                 setTimeout(() => { overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); }, 10);
 
-                fetch('http://localhost:3000/api/auth/login', {
+                fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: emailInput, password: passwordInput })
@@ -877,7 +877,7 @@
                     setTimeout(() => { overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); }, 10);
 
                     getCountry().then(country => {
-                            return fetch('http://localhost:3000/api/auth/register', {
+                            return fetch('/api/auth/register', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
